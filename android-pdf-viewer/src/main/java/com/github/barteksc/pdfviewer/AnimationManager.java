@@ -21,6 +21,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.graphics.PointF;
+import android.util.Log;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.OverScroller;
 
@@ -84,6 +85,7 @@ class AnimationManager {
     public void startFlingAnimation(int startX, int startY, int velocityX, int velocityY, int minX, int maxX, int minY, int maxY) {
         stopAll();
         flinging = true;
+        pdfView.swipeChangePage(velocityX);
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
     }
 

@@ -15,6 +15,7 @@
  */
 package com.github.barteksc.pdfviewer.listener;
 
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.github.barteksc.pdfviewer.link.LinkHandler;
@@ -46,6 +47,11 @@ public class Callbacks {
      * Call back object to call when the page has changed
      */
     private OnPageChangeListener onPageChangeListener;
+
+    /**
+     * Call back object to call when the page has changed
+     */
+    private OnPageSwipeChangeListener onPageSwipeChangeListener;
 
     /**
      * Call back object to call when the page is scrolled
@@ -118,9 +124,23 @@ public class Callbacks {
         this.onPageChangeListener = onPageChangeListener;
     }
 
+    public void setOnPageSwipeChange(OnPageSwipeChangeListener onPageSwipeChangeListener) {
+        this.onPageSwipeChangeListener = onPageSwipeChangeListener;
+    }
+
     public void callOnPageChange(int page, int pagesCount) {
         if (onPageChangeListener != null) {
             onPageChangeListener.onPageChanged(page, pagesCount);
+        }
+    }
+
+    public void callOnPageSwipeChange(int offset) {
+        if (onPageSwipeChangeListener != null) {
+            Log.d("callOnPageSwipeChange", String.format("offset: %d",offset));
+            onPageSwipeChangeListener.onPageSwipeChange(offset);
+        }
+        else {
+            Log.d("ja_foste", String.format("offset: %d",offset));
         }
     }
 

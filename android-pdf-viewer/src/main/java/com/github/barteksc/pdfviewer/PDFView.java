@@ -34,6 +34,8 @@ import android.os.Build;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
@@ -47,6 +49,7 @@ import com.github.barteksc.pdfviewer.listener.OnLongPressListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
+import com.github.barteksc.pdfviewer.listener.OnPageSwipeChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.github.barteksc.pdfviewer.model.PagePart;
@@ -331,6 +334,12 @@ public class PDFView extends RelativeLayout {
         callbacks.callOnPageChange(currentPage, pdfFile.getPagesCount());
     }
 
+
+    void swipeChangePage(int offset) {
+        callbacks.callOnPageSwipeChange(offset);
+    }
+
+
     /**
      * Get current position as ratio of document length to visible area.
      * 0 means that document start is visible, 1 that document end is visible
@@ -520,7 +529,6 @@ public class PDFView extends RelativeLayout {
         if (pdfFile == null) {
             return true;
         }
-
         if (swipeVertical) {
             if (direction < 0 && currentXOffset < 0) {
                 return true;
@@ -542,7 +550,6 @@ public class PDFView extends RelativeLayout {
         if (pdfFile == null) {
             return true;
         }
-
         if (swipeVertical) {
             if (direction < 0 && currentYOffset < 0) {
                 return true;
@@ -1002,6 +1009,7 @@ public class PDFView extends RelativeLayout {
     /**
      * @return true if single page fills the entire screen in the scrolling direction
      */
+
     public boolean pageFillsScreen() {
         float start = -pdfFile.getPageOffset(currentPage, zoom);
         float end = start - pdfFile.getPageLength(currentPage, zoom);
@@ -1027,6 +1035,7 @@ public class PDFView extends RelativeLayout {
      * Change the zoom level
      */
     public void zoomTo(float zoom) {
+        Log.d("Zoom TO", String.format("%f", zoom));
         this.zoom = zoom;
     }
 
@@ -1339,6 +1348,8 @@ public class PDFView extends RelativeLayout {
 
         private OnPageChangeListener onPageChangeListener;
 
+        private OnPageSwipeChangeListener onPageSwipeChangeListener;
+
         private OnPageScrollListener onPageScrollListener;
 
         private OnRenderListener onRenderListener;
@@ -1433,6 +1444,11 @@ public class PDFView extends RelativeLayout {
 
         public Configurator onPageChange(OnPageChangeListener onPageChangeListener) {
             this.onPageChangeListener = onPageChangeListener;
+            return this;
+        }
+
+        public Configurator onPageSwipeChange(OnPageSwipeChangeListener onPageSwipeChangeListener) {
+            this.onPageSwipeChangeListener = onPageSwipeChangeListener;
             return this;
         }
 
@@ -1532,6 +1548,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setOnDraw(onDrawListener);
             PDFView.this.callbacks.setOnDrawAll(onDrawAllListener);
             PDFView.this.callbacks.setOnPageChange(onPageChangeListener);
+            PDFView.this.callbacks.setOnPageSwipeChange(onPageSwipeChangeListener);
             PDFView.this.callbacks.setOnPageScroll(onPageScrollListener);
             PDFView.this.callbacks.setOnRender(onRenderListener);
             PDFView.this.callbacks.setOnTap(onTapListener);

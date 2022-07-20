@@ -299,13 +299,13 @@ public class PDFView extends RelativeLayout {
             if (withAnimation) {
                 animationManager.startYAnimation(currentYOffset, offset);
             } else {
-                moveTo(currentXOffset, offset, false);
+                moveTo(currentXOffset, offset);
             }
         } else {
             if (withAnimation) {
                 animationManager.startXAnimation(currentXOffset, offset);
             } else {
-                moveTo(offset, currentYOffset, false);
+                moveTo(offset, currentYOffset);
             }
         }
         showPage(page);
@@ -520,7 +520,7 @@ public class PDFView extends RelativeLayout {
             currentXOffset = -relativeCenterPointInStripXOffset * pdfFile.getDocLen(zoom) + w * 0.5f;
             currentYOffset = -relativeCenterPointInStripYOffset * pdfFile.getMaxPageHeight() + h * 0.5f;
         }
-        moveTo(currentXOffset,currentYOffset, false);
+        moveTo(currentXOffset,currentYOffset);
         loadPageByOffset();
     }
 
@@ -816,8 +816,8 @@ public class PDFView extends RelativeLayout {
         redraw();
     }
 
-    public void moveTo(float offsetX, float offsetY, boolean zooming) {
-        moveTo(offsetX, offsetY, true, zooming);
+    public void moveTo(float offsetX, float offsetY) {
+        moveTo(offsetX, offsetY, true);
     }
 
     /**
@@ -828,7 +828,7 @@ public class PDFView extends RelativeLayout {
      * @param offsetY    The big strip Y offset to use as the right border of the screen.
      * @param moveHandle whether to move scroll handle or not
      */
-    public void moveTo(float offsetX, float offsetY, boolean moveHandle, boolean zooming) {
+    public void moveTo(float offsetX, float offsetY, boolean moveHandle) {
         if (swipeVertical) {
             // Check X offset
             float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
@@ -903,7 +903,7 @@ public class PDFView extends RelativeLayout {
             scrollHandle.setScroll(positionOffset);
         }
 
-        callbacks.callOnPageScroll(getCurrentPage(), positionOffset, zooming);
+        callbacks.callOnPageScroll(getCurrentPage(), positionOffset);
 
         redraw();
     }
@@ -1025,10 +1025,10 @@ public class PDFView extends RelativeLayout {
      *
      * @param dx The X difference you want to apply.
      * @param dy The Y difference you want to apply.
-     * @see #moveTo(float, float, boolean)
+     * @see #moveTo(float, float)
      */
     public void moveRelativeTo(float dx, float dy) {
-        moveTo(currentXOffset + dx, currentYOffset + dy, false);
+        moveTo(currentXOffset + dx, currentYOffset + dy);
     }
 
     /**
@@ -1054,7 +1054,7 @@ public class PDFView extends RelativeLayout {
         float baseY = currentYOffset * dzoom;
         baseX += (pivot.x - pivot.x * dzoom);
         baseY += (pivot.y - pivot.y * dzoom);
-        moveTo(baseX, baseY, true);
+        moveTo(baseX, baseY);
     }
 
     /**

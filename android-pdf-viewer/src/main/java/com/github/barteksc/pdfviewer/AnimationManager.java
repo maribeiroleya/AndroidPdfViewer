@@ -56,7 +56,7 @@ class AnimationManager {
         animation.setInterpolator(new DecelerateInterpolator());
         animation.addUpdateListener(xAnimation);
         animation.addListener(xAnimation);
-        animation.setDuration(4000);
+        animation.setDuration(400);
         animation.start();
     }
 
@@ -67,7 +67,7 @@ class AnimationManager {
         animation.setInterpolator(new DecelerateInterpolator());
         animation.addUpdateListener(yAnimation);
         animation.addListener(yAnimation);
-        animation.setDuration(50);
+        animation.setDuration(400);
         animation.start();
     }
 
@@ -78,7 +78,7 @@ class AnimationManager {
         ZoomAnimation zoomAnim = new ZoomAnimation(centerX, centerY);
         animation.addUpdateListener(zoomAnim);
         animation.addListener(zoomAnim);
-        animation.setDuration(5000);
+        animation.setDuration(400);
         animation.start();
     }
 
@@ -100,7 +100,7 @@ class AnimationManager {
 
     void computeFling() {
         if (scroller.computeScrollOffset()) {
-            pdfView.moveTo(scroller.getCurrX(), scroller.getCurrY(), false);
+            pdfView.moveTo(scroller.getCurrX(), scroller.getCurrY());
             pdfView.loadPageByOffset();
         } else if (flinging) { // fling finished
             flinging = false;
@@ -132,7 +132,7 @@ class AnimationManager {
         @Override
         public void onAnimationUpdate(ValueAnimator animation) {
             float offset = (Float) animation.getAnimatedValue();
-            pdfView.moveTo(offset, pdfView.getCurrentYOffset(), false);
+            pdfView.moveTo(offset, pdfView.getCurrentYOffset());
             pdfView.loadPageByOffset();
         }
 
@@ -156,7 +156,7 @@ class AnimationManager {
         @Override
         public void onAnimationUpdate(ValueAnimator animation) {
             float offset = (Float) animation.getAnimatedValue();
-            pdfView.moveTo(pdfView.getCurrentXOffset(), offset, false);
+            pdfView.moveTo(pdfView.getCurrentXOffset(), offset);
             pdfView.loadPageByOffset();
         }
 

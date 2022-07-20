@@ -100,7 +100,7 @@ class AnimationManager {
 
     void computeFling() {
         if (scroller.computeScrollOffset()) {
-            pdfView.moveTo(scroller.getCurrX(), scroller.getCurrY());
+            pdfView.moveTo(scroller.getCurrX(), scroller.getCurrY(), false);
             pdfView.loadPageByOffset();
         } else if (flinging) { // fling finished
             flinging = false;
@@ -132,7 +132,7 @@ class AnimationManager {
         @Override
         public void onAnimationUpdate(ValueAnimator animation) {
             float offset = (Float) animation.getAnimatedValue();
-            pdfView.moveTo(offset, pdfView.getCurrentYOffset());
+            pdfView.moveTo(offset, pdfView.getCurrentYOffset(), false);
             pdfView.loadPageByOffset();
         }
 
@@ -156,7 +156,7 @@ class AnimationManager {
         @Override
         public void onAnimationUpdate(ValueAnimator animation) {
             float offset = (Float) animation.getAnimatedValue();
-            pdfView.moveTo(pdfView.getCurrentXOffset(), offset);
+            pdfView.moveTo(pdfView.getCurrentXOffset(), offset, false);
             pdfView.loadPageByOffset();
         }
 

@@ -18,6 +18,7 @@ package com.github.barteksc.pdfviewer;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
@@ -34,7 +35,7 @@ import java.util.List;
 class PdfFile {
 
     private static final Object lock = new Object();
-    private PdfDocument pdfDocument;
+    private List<PdfDocument> pdfDocuments;
     private PdfiumCore pdfiumCore;
     private int pagesCount = 0;
     /** Original page sizes */
@@ -75,10 +76,10 @@ class PdfFile {
      */
     private int[] originalUserPages;
 
-    PdfFile(PdfiumCore pdfiumCore, PdfDocument pdfDocument, FitPolicy pageFitPolicy, Size viewSize, int[] originalUserPages,
+    PdfFile(PdfiumCore pdfiumCore, List<PdfDocument> pdfDocuments, FitPolicy pageFitPolicy, Size viewSize, int[] originalUserPages,
             boolean isVertical, int spacing, boolean autoSpacing, boolean fitEachPage) {
         this.pdfiumCore = pdfiumCore;
-        this.pdfDocument = pdfDocument;
+        this.pdfDocuments = pdfDocuments;
         this.pageFitPolicy = pageFitPolicy;
         this.originalUserPages = originalUserPages;
         this.isVertical = isVertical;
@@ -92,18 +93,26 @@ class PdfFile {
         if (originalUserPages != null) {
             pagesCount = originalUserPages.length;
         } else {
-            pagesCount = pdfiumCore.getPageCount(pdfDocument);
+            int count = 0;
+            for(PdfDocument pdfDocument : pdfDocuments) {
+                count += pdfiumCore.getPageCount(pdfDocument);
+            }
+            pagesCount = count;
         }
 
-        for (int i = 0; i < pagesCount; i++) {
-            Size pageSize = pdfiumCore.getPageSize(pdfDocument, documentPage(i));
-            if (pageSize.getWidth() > originalMaxWidthPageSize.getWidth()) {
-                originalMaxWidthPageSize = pageSize;
+        Log.d("START", "START ANTES");
+
+        for(PdfDocument pdfDocument : pdfDocuments) {
+            for (int i = 0; i < pdfiumCore.getPageCount(pdfDocument); i++) {
+                Size pageSize = pdfiumCore.getPageSize(pdfDocument, documentPage(i));
+                if (pageSize.getWidth() > originalMaxWidthPageSize.getWidth()) {
+                    originalMaxWidthPageSize = pageSize;
+                }
+                if (pageSize.getHeight() > originalMaxHeightPageSize.getHeight()) {
+                    originalMaxHeightPageSize = pageSize;
+                }
+                originalPageSizes.add(pageSize);
             }
-            if (pageSize.getHeight() > originalMaxHeightPageSize.getHeight()) {
-                originalMaxHeightPageSize = pageSize;
-            }
-            originalPageSizes.add(pageSize);
         }
 
         recalculatePageSizes(viewSize);
@@ -272,14 +281,35 @@ class PdfFile {
 
         synchronized (lock) {
             if (openedPages.indexOfKey(docPage) < 0) {
+                Log.e("TESTE COISO", "TESTE 0");
                 try {
-                    pdfiumCore.openPage(pdfDocument, docPage);
+
+
+                    Log.d("UI UI UI", String.format("docPage: %d", docPage));
+
+                    PdfDocument pdfDocument = null;
+                    for(PdfDocument pdf : pdfDocuments) {
+                        if(pdfiumCore.getPageCount(pdf) > docPage) {
+                            pdfDocument = pdf;
+                            break;
+                        }
+                        else {
+                            docPage = docPage - pdfiumCore.getPageCount(pdf);
+                        }
+                    }
+
+                    pdfiumCore.openPage(pdfDocuments.get(0), docPage);
                     openedPages.put(docPage, true);
+                    Log.d("UI UI UI", "FINAL");
                     return true;
                 } catch (Exception e) {
+                    Log.d("UI UI UI", "FINAL 2");
                     openedPages.put(docPage, false);
                     throw new PageRenderingException(pageIndex, e);
                 }
+            }
+            else {
+                Log.e("TESTE COISO", "TESTE 1");
             }
             return false;
         }
@@ -291,42 +321,73 @@ class PdfFile {
     }
 
     public void renderPageBitmap(Bitmap bitmap, int pageIndex, Rect bounds, boolean annotationRendering) {
-        int docPage = documentPage(pageIndex);
-        pdfiumCore.renderPageBitmap(pdfDocument, bitmap, docPage,
-                bounds.left, bounds.top, bounds.width(), bounds.height(), annotationRendering);
+        /*int docPage = documentPage(pageIndex);
+        PdfDocument pdfDocument = null;
+        for(PdfDocument pdf : pdfDocuments) {
+            if(pdfiumCore.getPageCount(pdf) > docPage) {
+                pdfDocument = pdf;
+                break;
+            }
+            else {
+                docPage = docPage - pdfiumCore.getPageCount(pdf);
+            }
+        }*/
+        pdfiumCore.renderPageBitmap(pdfDocuments.get(0), bitmap, 0, bounds.left, bounds.top, bounds.width(), bounds.height(), annotationRendering);
     }
 
     public PdfDocument.Meta getMetaData() {
-        if (pdfDocument == null) {
+        if (pdfDocuments == null) {
             return null;
         }
-        return pdfiumCore.getDocumentMeta(pdfDocument);
+        return pdfiumCore.getDocumentMeta(pdfDocuments.get(0));
     }
 
     public List<PdfDocument.Bookmark> getBookmarks() {
-        if (pdfDocument == null) {
+        if (pdfDocuments == null) {
             return new ArrayList<>();
         }
-        return pdfiumCore.getTableOfContents(pdfDocument);
+        return pdfiumCore.getTableOfContents(pdfDocuments.get(0));
     }
 
     public List<PdfDocument.Link> getPageLinks(int pageIndex) {
-        int docPage = documentPage(pageIndex);
-        return pdfiumCore.getPageLinks(pdfDocument, docPage);
+        /*int docPage = documentPage(pageIndex);
+        PdfDocument pdfDocument = null;
+        for(PdfDocument pdf : pdfDocuments) {
+            if(pdfiumCore.getPageCount(pdf) > docPage) {
+                pdfDocument = pdf;
+                break;
+            }
+            else {
+                docPage = docPage - pdfiumCore.getPageCount(pdf);
+            }
+        }*/
+        return pdfiumCore.getPageLinks(pdfDocuments.get(0), 0);
     }
 
     public RectF mapRectToDevice(int pageIndex, int startX, int startY, int sizeX, int sizeY,
                                  RectF rect) {
-        int docPage = documentPage(pageIndex);
-        return pdfiumCore.mapRectToDevice(pdfDocument, docPage, startX, startY, sizeX, sizeY, 0, rect);
+        /*int docPage = documentPage(pageIndex);
+        PdfDocument pdfDocument = null;
+        for(PdfDocument pdf : pdfDocuments) {
+            if(pdfiumCore.getPageCount(pdf) > docPage) {
+                pdfDocument = pdf;
+                break;
+            }
+            else {
+                docPage = docPage - pdfiumCore.getPageCount(pdf);
+            }
+        }*/
+        return pdfiumCore.mapRectToDevice(pdfDocuments.get(0), 0, startX, startY, sizeX, sizeY, 0, rect);
     }
 
     public void dispose() {
-        if (pdfiumCore != null && pdfDocument != null) {
-            pdfiumCore.closeDocument(pdfDocument);
+        if (pdfiumCore != null && pdfDocuments != null) {
+            for(PdfDocument pdf : pdfDocuments) {
+                pdfiumCore.closeDocument(pdf);
+            }
         }
 
-        pdfDocument = null;
+        pdfDocuments = null;
         originalUserPages = null;
     }
 

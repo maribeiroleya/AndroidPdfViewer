@@ -91,7 +91,7 @@ import java.util.List;
  * - DocumentPage = A page of the PDF document.
  * - UserPage = A page as defined by the user.
  * By default, they're the same. But the user can change the pages order
- * using {@link #load(DocumentSource, String, int[])}. In this
+ * using {@link #load(List<DocumentSource>, String, int[])}. In this
  * particular case, a userPage of 5 can refer to a documentPage of 17.
  */
 public class PDFView extends RelativeLayout {
@@ -267,11 +267,11 @@ public class PDFView extends RelativeLayout {
         setWillNotDraw(false);
     }
 
-    private void load(DocumentSource docSource, String password) {
-        load(docSource, password, null);
+    private void load(List<DocumentSource> docSources, String password) {
+        load(docSources, password, null);
     }
 
-    private void load(DocumentSource docSource, String password, int[] userPages) {
+    private void load(List<DocumentSource> docSources, String password, int[] userPages) {
 
         if (!recycled) {
             throw new IllegalStateException("Don't call load on a PDF View without recycling it first.");
@@ -279,7 +279,7 @@ public class PDFView extends RelativeLayout {
 
         recycled = false;
         // Start decoding document
-        decodingAsyncTask = new DecodingAsyncTask(docSource, password, userPages, this, pdfiumCore);
+        decodingAsyncTask = new DecodingAsyncTask(docSources, password, userPages, this, pdfiumCore);
         decodingAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -1297,40 +1297,60 @@ public class PDFView extends RelativeLayout {
     }
 
     /** Use an asset file as the pdf source */
-    public Configurator fromAsset(String assetName) {
-        return new Configurator(new AssetSource(assetName));
+    public Configurator fromAsset(List<String> assetsNames) {
+        List<DocumentSource> sources = new ArrayList<>();
+        for(String string : assetsNames) {
+            sources.add(new AssetSource(string));
+        }
+        return new Configurator(sources);
     }
 
     /** Use a file as the pdf source */
-    public Configurator fromFile(File file) {
-        return new Configurator(new FileSource(file));
+    public Configurator fromFile(List<File> files) {
+        List<DocumentSource> sources = new ArrayList<>();
+        for(File file : files) {
+            sources.add(new FileSource(file));
+        }
+        return new Configurator(sources);
     }
 
     /** Use URI as the pdf source, for use with content providers */
-    public Configurator fromUri(Uri uri) {
-        return new Configurator(new UriSource(uri));
+    public Configurator fromUri(List<Uri> uris) {
+        List<DocumentSource> sources = new ArrayList<>();
+        for(Uri uri : uris) {
+            sources.add(new UriSource(uri));
+        }
+        return new Configurator(sources);
     }
 
     /** Use bytearray as the pdf source, documents is not saved */
-    public Configurator fromBytes(byte[] bytes) {
-        return new Configurator(new ByteArraySource(bytes));
+    public Configurator fromBytes(List<byte[]> bytess) {
+        List<DocumentSource> sources = new ArrayList<>();
+        for(byte[] bytes : bytess) {
+            sources.add(new ByteArraySource(bytes));
+        }
+        return new Configurator(sources);
     }
 
     /** Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams */
-    public Configurator fromStream(InputStream stream) {
-        return new Configurator(new InputStreamSource(stream));
+    public Configurator fromStream(List<InputStream> streams){
+        List<DocumentSource> sources = new ArrayList<>();
+        for(InputStream stream : streams) {
+            sources.add(new InputStreamSource(stream));
+        }
+        return new Configurator(sources);
     }
 
     /** Use custom source as pdf source */
-    public Configurator fromSource(DocumentSource docSource) {
-        return new Configurator(docSource);
+    public Configurator fromSource(List<DocumentSource> docSources) {
+        return new Configurator(docSources);
     }
 
     private enum State {DEFAULT, LOADED, SHOWN, ERROR}
 
     public class Configurator {
 
-        private final DocumentSource documentSource;
+        private final List<DocumentSource> documentSources;
 
         private int[] pageNumbers = null;
 
@@ -1388,8 +1408,8 @@ public class PDFView extends RelativeLayout {
 
         private boolean nightMode = false;
 
-        private Configurator(DocumentSource documentSource) {
-            this.documentSource = documentSource;
+        private Configurator(List<DocumentSource> documentSources) {
+            this.documentSources = documentSources;
         }
 
         public Configurator pages(int... pageNumbers) {
@@ -1571,9 +1591,9 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setPageFling(pageFling);
 
             if (pageNumbers != null) {
-                PDFView.this.load(documentSource, password, pageNumbers);
+                PDFView.this.load(documentSources, password, pageNumbers);
             } else {
-                PDFView.this.load(documentSource, password);
+                PDFView.this.load(documentSources, password);
             }
         }
     }

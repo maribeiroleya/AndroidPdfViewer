@@ -45,6 +45,7 @@ import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.ViewById;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @EActivity(R.layout.activity_main)
@@ -57,7 +58,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
 
-    public static final String SAMPLE_FILE = "sample.pdf";
+    //
+    public static final String SAMPLE_FILE = "1.pdf";
+    public static final String SAMPLE_FILE_2 = "2.pdf";
+    public static final String SAMPLE_FILE_3 = "sample.pdf";
+    public static final String SAMPLE_FILE_4 = "sample.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @ViewById
@@ -67,7 +72,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     Uri uri;
 
     @NonConfigurationInstance
-    Integer pageNumber = 0;
+    Integer pageNumber = 1;
 
     String pdfFileName;
 
@@ -114,14 +119,23 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromAsset(String assetFileName) {
         pdfFileName = assetFileName;
 
-        pdfView.fromAsset(SAMPLE_FILE)
-                .defaultPage(pageNumber)
+        List<String> files = new ArrayList<>();
+        files.add(SAMPLE_FILE);
+        files.add(SAMPLE_FILE_2);
+        files.add(SAMPLE_FILE_3);
+        //files.add(SAMPLE_FILE_4);
+        pdfView.fromAsset(files)
+                .swipeHorizontal(true)
+                .defaultPage(0)
                 .onPageChange(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
                 .spacing(10) // in dp
                 .onPageError(this)
+                .autoSpacing(true)
+                .pageFling(true)
+                .pageSnap(true)
                 .pageFitPolicy(FitPolicy.BOTH)
                 .load();
     }
@@ -129,7 +143,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromUri(Uri uri) {
         pdfFileName = getFileName(uri);
 
-        pdfView.fromUri(uri)
+        List<Uri> files = new ArrayList<>();
+        files.add(uri);
+        files.add(uri);
+        pdfView.fromUri(files)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
                 .enableAnnotationRendering(true)

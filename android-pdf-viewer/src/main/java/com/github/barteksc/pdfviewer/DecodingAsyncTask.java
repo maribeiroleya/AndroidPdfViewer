@@ -23,6 +23,8 @@ import com.shockwave.pdfium.PdfiumCore;
 import com.shockwave.pdfium.util.Size;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
 
@@ -32,12 +34,12 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
 
     private PdfiumCore pdfiumCore;
     private String password;
-    private DocumentSource docSource;
+    private List<DocumentSource> docSources;
     private int[] userPages;
     private PdfFile pdfFile;
 
-    DecodingAsyncTask(DocumentSource docSource, String password, int[] userPages, PDFView pdfView, PdfiumCore pdfiumCore) {
-        this.docSource = docSource;
+    DecodingAsyncTask(List<DocumentSource> docSources, String password, int[] userPages, PDFView pdfView, PdfiumCore pdfiumCore) {
+        this.docSources = docSources;
         this.userPages = userPages;
         this.cancelled = false;
         this.pdfViewReference = new WeakReference<>(pdfView);
@@ -50,8 +52,11 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
         try {
             PDFView pdfView = pdfViewReference.get();
             if (pdfView != null) {
-                PdfDocument pdfDocument = docSource.createDocument(pdfView.getContext(), pdfiumCore, password);
-                pdfFile = new PdfFile(pdfiumCore, pdfDocument, pdfView.getPageFitPolicy(), getViewSize(pdfView),
+                List<PdfDocument> documents = new ArrayList<>();
+                for(DocumentSource docSource : docSources) {
+                    documents.add(docSource.createDocument(pdfView.getContext(), pdfiumCore, password));
+                }
+                pdfFile = new PdfFile(pdfiumCore, documents, pdfView.getPageFitPolicy(), getViewSize(pdfView),
                         userPages, pdfView.isSwipeVertical(), pdfView.getSpacingPx(), pdfView.isAutoSpacingEnabled(),
                         pdfView.isFitEachPage());
                 return null;

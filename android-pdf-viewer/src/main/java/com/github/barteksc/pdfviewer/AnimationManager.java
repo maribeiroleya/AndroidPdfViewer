@@ -56,7 +56,7 @@ class AnimationManager {
         animation.setInterpolator(new DecelerateInterpolator());
         animation.addUpdateListener(xAnimation);
         animation.addListener(xAnimation);
-        animation.setDuration(400);
+        animation.setDuration(4000);
         animation.start();
     }
 
@@ -67,7 +67,7 @@ class AnimationManager {
         animation.setInterpolator(new DecelerateInterpolator());
         animation.addUpdateListener(yAnimation);
         animation.addListener(yAnimation);
-        animation.setDuration(400);
+        animation.setDuration(50);
         animation.start();
     }
 
@@ -78,7 +78,7 @@ class AnimationManager {
         ZoomAnimation zoomAnim = new ZoomAnimation(centerX, centerY);
         animation.addUpdateListener(zoomAnim);
         animation.addListener(zoomAnim);
-        animation.setDuration(400);
+        animation.setDuration(5000);
         animation.start();
     }
 

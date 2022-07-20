@@ -148,9 +148,9 @@ public class Callbacks {
         this.onPageScrollListener = onPageScrollListener;
     }
 
-    public void callOnPageScroll(int currentPage, float offset) {
+    public void callOnPageScroll(int currentPage, float offset, boolean zooming) {
         if (onPageScrollListener != null) {
-            onPageScrollListener.onPageScrolled(currentPage, offset);
+            onPageScrollListener.onPageScrolled(currentPage, offset, zooming);
         }
     }
 

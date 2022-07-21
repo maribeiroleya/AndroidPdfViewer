@@ -42,6 +42,7 @@ import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
 import com.github.barteksc.pdfviewer.link.LinkHandler;
 import com.github.barteksc.pdfviewer.listener.Callbacks;
+import com.github.barteksc.pdfviewer.listener.OnActionEnd;
 import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.github.barteksc.pdfviewer.listener.OnErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
@@ -1057,6 +1058,11 @@ public class PDFView extends RelativeLayout {
         moveTo(baseX, baseY);
     }
 
+
+    public void zoomEnd() {
+        callbacks.callOnActionEnd();
+    }
+
     /**
      * @see #zoomCenteredTo(float, PointF)
      */
@@ -1350,6 +1356,8 @@ public class PDFView extends RelativeLayout {
 
         private OnPageSwipeChangeListener onPageSwipeChangeListener;
 
+        private OnActionEnd onActionEnd;
+
         private OnPageScrollListener onPageScrollListener;
 
         private OnRenderListener onRenderListener;
@@ -1452,6 +1460,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator onActionEnd(OnActionEnd onActionEnd) {
+            this.onActionEnd = onActionEnd;
+            return this;
+        }
+
         public Configurator onRender(OnRenderListener onRenderListener) {
             this.onRenderListener = onRenderListener;
             return this;
@@ -1549,6 +1562,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setOnDrawAll(onDrawAllListener);
             PDFView.this.callbacks.setOnPageChange(onPageChangeListener);
             PDFView.this.callbacks.setOnPageSwipeChange(onPageSwipeChangeListener);
+            PDFView.this.callbacks.setOnActionEnd(onActionEnd);
             PDFView.this.callbacks.setOnPageScroll(onPageScrollListener);
             PDFView.this.callbacks.setOnRender(onRenderListener);
             PDFView.this.callbacks.setOnTap(onTapListener);

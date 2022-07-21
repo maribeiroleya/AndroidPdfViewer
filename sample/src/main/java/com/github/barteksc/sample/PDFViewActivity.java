@@ -30,6 +30,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.listener.OnActionEnd;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
@@ -50,7 +51,7 @@ import java.util.List;
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.options)
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
-        OnPageErrorListener {
+        OnPageErrorListener, OnActionEnd {
 
     private static final String TAG = PDFViewActivity.class.getSimpleName();
 
@@ -117,6 +118,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         pdfView.fromAsset(SAMPLE_FILE)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
+                .onActionEnd(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
@@ -222,5 +224,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     public void onPageError(int page, Throwable t) {
         Log.e(TAG, "Cannot load page " + page);
+    }
+
+    @Override
+    public void actionEnd() {
+        Log.d("TESTE", "END");
     }
 }

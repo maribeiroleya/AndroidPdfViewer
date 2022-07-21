@@ -48,6 +48,9 @@ public class Callbacks {
      */
     private OnPageChangeListener onPageChangeListener;
 
+
+    private OnActionEnd onActionEnd;
+
     /**
      * Call back object to call when the page has changed
      */
@@ -128,9 +131,19 @@ public class Callbacks {
         this.onPageSwipeChangeListener = onPageSwipeChangeListener;
     }
 
+    public void setOnActionEnd(OnActionEnd onActionEnd) {
+        this.onActionEnd = onActionEnd;
+    }
+
     public void callOnPageChange(int page, int pagesCount) {
         if (onPageChangeListener != null) {
             onPageChangeListener.onPageChanged(page, pagesCount);
+        }
+    }
+
+    public void callOnActionEnd() {
+        if (onActionEnd != null) {
+            onActionEnd.actionEnd();
         }
     }
 

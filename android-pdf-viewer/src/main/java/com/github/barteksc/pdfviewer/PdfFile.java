@@ -303,6 +303,12 @@ class PdfFile {
         return pdfiumCore.getDocumentMeta(pdfDocument);
     }
 
+
+    public float getPageWidth() {
+        return pdfiumCore.getPageWidth(pdfDocument, 0);
+    }
+
+
     public List<PdfDocument.Bookmark> getBookmarks() {
         if (pdfDocument == null) {
             return new ArrayList<>();

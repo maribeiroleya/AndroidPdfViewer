@@ -29,10 +29,13 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.HandlerThread;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -669,11 +672,22 @@ public class PDFView extends RelativeLayout {
         canvas.drawText(s, 0, bounds.bottom, p);*/
 
         Paint p = new Paint();
-        Bitmap b=BitmapFactory.decodeResource(getResources(), R.drawable.icon);
+
+        Drawable drawable = ContextCompat.getDrawable(this.getContext(), R.drawable.icon);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+
+        float widthTeste = toCurrentScale(100);
+        float widthHeight = toCurrentScale(100);
+
+
+        Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.teste, widthTeste, widthHeight);
+
         p.setColor(Color.RED);
 
-        float widthTeste = toCurrentScale(b.getWidth());
-        float widthHeight = toCurrentScale(b.getHeight());
+
         Rect srcRect = new Rect(0, 0, b.getWidth(),
                 b.getHeight());
         Rect destRect = new Rect(0, 0, (int) widthTeste,
@@ -684,6 +698,23 @@ public class PDFView extends RelativeLayout {
         // Restores the canvas position
         canvas.translate(-currentXOffset, -currentYOffset);
     }
+
+
+    public Bitmap getBitmapFromVectorDrawable(Context context, int drawableId, float widthTeste, float widthHeight) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap((int) widthTeste,
+                (int) widthHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
 
     private void drawWithListener(Canvas canvas, int page, OnDrawListener listener) {
         if (listener != null) {
@@ -713,7 +744,8 @@ public class PDFView extends RelativeLayout {
 
 
         RectF pageRelativeBounds = part.getPageRelativeBounds();
-        Bitmap renderedBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.icon);
+
+        Bitmap renderedBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.teste);
 
         if (renderedBitmap.isRecycled()) {
             return;

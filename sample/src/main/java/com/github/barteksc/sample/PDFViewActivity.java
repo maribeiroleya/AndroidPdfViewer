@@ -116,6 +116,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         pdfFileName = assetFileName;
 
         pdfView.fromAsset(SAMPLE_FILE)
+                .swipeHorizontal(true)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
                 .onActionEnd(this)

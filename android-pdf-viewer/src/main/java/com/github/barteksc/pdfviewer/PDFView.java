@@ -571,6 +571,12 @@ public class PDFView extends RelativeLayout {
         return false;
     }
 
+
+    public float getPageWidth() {
+        return this.pdfFile.getPageWidth();
+    }
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         if (isInEditMode()) {

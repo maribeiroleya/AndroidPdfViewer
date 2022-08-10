@@ -654,45 +654,30 @@ public class PDFView extends RelativeLayout {
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
 
-        /*final String s = "Hello. I'm some text!";
-        Paint p = new Paint();
-        Rect bounds = new Rect();
-        p.setTextSize(60);
-        p.getTextBounds(s, 0, s.length(), bounds);
-        float mt = p.measureText(s);
-        int bw = bounds.width();
 
 
-        bounds.offset(0, -bounds.top);
-        p.setStyle(Style.STROKE);
-        //canvas.drawColor(0xff000080);
-        p.setColor(0xffff0000);
-        canvas.drawRect(bounds, p);
-        p.setColor(0xff00ff00);
-        canvas.drawText(s, 0, bounds.bottom, p);*/
-
-        Paint p = new Paint();
-
-        Drawable drawable = ContextCompat.getDrawable(this.getContext(), R.drawable.icon);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            drawable = (DrawableCompat.wrap(drawable)).mutate();
-        }
 
 
-        float widthTeste = toCurrentScale(100);
+        //Paint p = new Paint();
+
+        float x = pdfFile.getPageSize(0).getWidth() - 100;
+        float widthTeste = toCurrentScale(100 + x);
         float widthHeight = toCurrentScale(100);
 
 
         Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.teste, widthTeste, widthHeight);
 
-        p.setColor(Color.RED);
+        //p.setColor(Color.RED);
 
+        SizeF size = pdfFile.getPageSize(0);
+        float localTranslationX = pdfFile.getPageOffset(0, zoom);
+        float maxHeight = pdfFile.getMaxPageHeight();
+        float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-        Rect srcRect = new Rect(0, 0, b.getWidth(),
-                b.getHeight());
-        Rect destRect = new Rect(0, 0, (int) widthTeste,
-                (int) widthHeight);
-        canvas.drawBitmap(b, 0, 0, null);
+        canvas.translate(localTranslationX, localTranslationY);
+
+        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+        Rect destRect = new Rect((int)toCurrentScale(x), 0, (int) widthTeste, (int) widthHeight);
         canvas.drawBitmap(b, srcRect, destRect, null);
 
         // Restores the canvas position
@@ -738,70 +723,6 @@ public class PDFView extends RelativeLayout {
         }
     }
 
-
-    private void drawPartTeste(Canvas canvas, PagePart part) {
-        // Can seem strange, but avoid lot of calls
-
-
-        RectF pageRelativeBounds = part.getPageRelativeBounds();
-
-        Bitmap renderedBitmap=BitmapFactory.decodeResource(getResources(), R.drawable.teste);
-
-        if (renderedBitmap.isRecycled()) {
-            return;
-        }
-
-        // Move to the target page
-        float localTranslationX = 0;
-        float localTranslationY = 0;
-        SizeF size = pdfFile.getPageSize(0);
-
-        if (swipeVertical) {
-            localTranslationY = pdfFile.getPageOffset(0, zoom);
-            float maxWidth = pdfFile.getMaxPageWidth();
-            localTranslationX = toCurrentScale(maxWidth - size.getWidth()) / 2;
-        } else {
-            localTranslationX = pdfFile.getPageOffset(0, zoom);
-            float maxHeight = pdfFile.getMaxPageHeight();
-            localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
-        }
-        canvas.translate(localTranslationX, localTranslationY);
-
-        Rect srcRect = new Rect(0, 0, renderedBitmap.getWidth(),
-                renderedBitmap.getHeight());
-
-        float offsetX = toCurrentScale(pageRelativeBounds.left * size.getWidth());
-        float offsetY = toCurrentScale(pageRelativeBounds.top * size.getHeight());
-        float width = toCurrentScale(pageRelativeBounds.width() * size.getWidth());
-        float height = toCurrentScale(pageRelativeBounds.height() * size.getHeight());
-
-        // If we use float values for this rectangle, there will be
-        // a possible gap between page parts, especially when
-        // the zoom level is high.
-        RectF dstRect = new RectF((int) offsetX, (int) offsetY,
-                (int) (offsetX + width),
-                (int) (offsetY + height));
-
-        // Check if bitmap is in the screen
-        float translationX = currentXOffset + localTranslationX;
-        float translationY = currentYOffset + localTranslationY;
-        if (translationX + dstRect.left >= getWidth() || translationX + dstRect.right <= 0 ||
-                translationY + dstRect.top >= getHeight() || translationY + dstRect.bottom <= 0) {
-            canvas.translate(-localTranslationX, -localTranslationY);
-            return;
-        }
-
-        canvas.drawBitmap(renderedBitmap, srcRect, dstRect, paint);
-
-        if (Constants.DEBUG_MODE) {
-            debugPaint.setColor(0 % 2 == 0 ? Color.RED : Color.BLUE);
-            canvas.drawRect(dstRect, debugPaint);
-        }
-
-        // Restore the canvas position
-        canvas.translate(-localTranslationX, -localTranslationY);
-
-    }
 
     /** Draw a given PagePart on the canvas */
     private void drawPart(Canvas canvas, PagePart part) {

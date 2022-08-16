@@ -18,6 +18,7 @@ package com.github.barteksc.pdfviewer;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
@@ -142,6 +143,18 @@ class PdfFile {
         }
         return pageSizes.get(pageIndex);
     }
+
+
+    public Size getOriginalPageSize(int pageIndex) {
+        int docPage = documentPage(pageIndex);
+        if (docPage < 0) {
+            return new Size(0, 0);
+        }
+        Log.d("COISO COISO", String.format("%d", pdfiumCore.getPageWidthPoint(pdfDocument, documentPage(0))));
+        return pdfiumCore.getPageSize(pdfDocument, documentPage(0));
+        //return originalPageSizes.get(pageIndex);
+    }
+
 
     public SizeF getScaledPageSize(int pageIndex, float zoom) {
         SizeF size = getPageSize(pageIndex);

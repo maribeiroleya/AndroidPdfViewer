@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.icu.text.LocaleDisplayNames;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -36,7 +37,10 @@ import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
+import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.shockwave.pdfium.PdfDocument;
+import com.shockwave.pdfium.util.Size;
+import com.shockwave.pdfium.util.SizeF;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
@@ -46,6 +50,7 @@ import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.ViewById;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @EActivity(R.layout.activity_main)
@@ -58,7 +63,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
 
-    public static final String SAMPLE_FILE = "sample.pdf";
+    public static final String SAMPLE_FILE = "2.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @ViewById
@@ -113,10 +118,22 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     }
 
     private void displayFromAsset(String assetFileName) {
+
+        List<Hotspot> hotspots = new ArrayList<>();
+        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247));
+        hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679));
+        hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506));
+        hotspots.add(new Hotspot(0.0, 95.37037037037037));
+        hotspots.add(new Hotspot(9.07258064516129, 83.64198001814476));
+        hotspots.add(new Hotspot(66.33064516129032, 64.043214586046));
+        hotspots.add(new Hotspot(7.661290322580645, 8.333333333333332));
+
+
         pdfFileName = assetFileName;
 
         pdfView.fromAsset(SAMPLE_FILE)
                 .swipeHorizontal(true)
+                .withHotspots(hotspots)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
                 .onActionEnd(this)
@@ -191,6 +208,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         printBookmarksTree(pdfView.getTableOfContents(), "-");
 
+
+        Size pageSize = pdfView.getOriginalPageSize(0);
+
+        Log.d("WIDTH", String.format("%d", pageSize.getWidth()));
+        Log.d("HEIGHT", String.format("%d", pageSize.getHeight()));
     }
 
     public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {

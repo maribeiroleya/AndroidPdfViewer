@@ -17,7 +17,6 @@ package com.github.barteksc.pdfviewer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
@@ -29,7 +28,6 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -38,8 +36,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
@@ -67,6 +63,7 @@ import com.github.barteksc.pdfviewer.source.InputStreamSource;
 import com.github.barteksc.pdfviewer.source.UriSource;
 import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
+import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.MathUtils;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
 import com.github.barteksc.pdfviewer.util.Util;
@@ -136,6 +133,10 @@ public class PDFView extends RelativeLayout {
     /** The index of the current sequence */
     private int currentPage;
 
+
+    private Bitmap bitmapTeste = null;
+
+
     /**
      * If you picture all the pages side by side in their optimal width,
      * and taking into account the zoom level, the current offset is the
@@ -188,6 +189,8 @@ public class PDFView extends RelativeLayout {
     private boolean swipeVertical = true;
 
     private boolean enableSwipe = true;
+
+    private List<Hotspot> hotspots = new ArrayList<>();
 
     private boolean doubletapEnabled = true;
 
@@ -393,6 +396,12 @@ public class PDFView extends RelativeLayout {
     public void setSwipeEnabled(boolean enableSwipe) {
         this.enableSwipe = enableSwipe;
     }
+
+
+    public void setHotspots(List<Hotspot> hotspots) {
+        this.hotspots = hotspots;
+    }
+
 
     public void setNightMode(boolean nightMode) {
         this.nightMode = nightMode;
@@ -644,6 +653,7 @@ public class PDFView extends RelativeLayout {
         }
 
         // Draws parts
+        Log.e("DRAW THUMBANILS", "START");
         for (PagePart part : cacheManager.getPageParts()) {
             drawPart(canvas, part);
             if (callbacks.getOnDrawAll() != null
@@ -666,44 +676,109 @@ public class PDFView extends RelativeLayout {
 
         //Paint p = new Paint();
 
-        float x = pdfFile.getPageSize(0).getWidth() - 100;
-        float widthTeste = toCurrentScale(100 + x);
-        float widthHeight = toCurrentScale(100);
 
 
-        Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.teste, widthTeste, widthHeight);
+        /*for(Hotspot hotspot : this.hotspots) {
 
-        //p.setColor(Color.RED);
+        }*/
 
+
+
+        /*Bitmap b = createBitMapForHotspots();
         SizeF size = pdfFile.getPageSize(0);
         float localTranslationX = pdfFile.getPageOffset(0, zoom);
         float maxHeight = pdfFile.getMaxPageHeight();
         float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
-
         canvas.translate(localTranslationX, localTranslationY);
 
         Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-        Rect destRect = new Rect((int)toCurrentScale(x), 0, (int) widthTeste, (int) widthHeight);
+        Rect destRect = new Rect(0, 0, (int) toCurrentScale(size.getWidth()), (int) toCurrentScale(size.getHeight()));
         canvas.drawBitmap(b, srcRect, destRect, null);
 
-        // Restores the canvas position
+        canvas.translate(-currentXOffset, -currentYOffset);*/
+
+        for(Hotspot hotspot : this.hotspots) {
+            Double xPercent = hotspot.getXpos()/100;
+            Double yPercent = hotspot.getYpos()/100;
+
+            Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
+
+
+
+            float widthTeste = toCurrentScale(45 + x.floatValue());
+            float heightTeste = toCurrentScale(45 + y.floatValue());
+
+
+            Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.classification_play, widthTeste, heightTeste);
+
+            if (b.isRecycled()) {
+                return;
+            }
+            else {
+                SizeF size = pdfFile.getPageSize(0);
+                float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                float maxHeight = pdfFile.getMaxPageHeight();
+                float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
+
+                canvas.translate(localTranslationX, localTranslationY);
+
+                Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                Rect destRect = new Rect((int)toCurrentScale(x.floatValue()), (int)toCurrentScale(y.floatValue()), (int) widthTeste, (int) heightTeste);
+                canvas.drawBitmap(b, srcRect, destRect, null);
+            }
+        }
+
         canvas.translate(-currentXOffset, -currentYOffset);
+
+
+
+
+
     }
+
+/*
+    public Bitmap createBitMapForHotspots() {
+        Bitmap b = Bitmap.createBitmap(( (int)pdfFile.getPageSize(0).getWidth()), (int)pdfFile.getPageSize(0).getHeight(), Bitmap.Config.ARGB_8888 );
+        Canvas canvas = new Canvas(b);
+
+        Double xPercent = hotspots.get(0).getXpos()/100;
+        Double yPercent = hotspots.get(0).getYpos()/100;
+
+        Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
+        Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
+
+        float widthTeste = 100 + x.floatValue();
+        float heightTeste = 100 + y.floatValue();
+
+        Bitmap hotspost = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.teste, widthTeste, heightTeste);
+
+
+        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+        Rect destRect = new Rect((int) x.floatValue(), (int)y.floatValue(), (int) widthTeste, (int) heightTeste);
+        canvas.drawBitmap(hotspost, srcRect, destRect, null);
+
+
+
+        return b;
+    }*/
 
 
     public Bitmap getBitmapFromVectorDrawable(Context context, int drawableId, float widthTeste, float widthHeight) {
-        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        if(bitmapTeste == null) {
+            Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                drawable = (DrawableCompat.wrap(drawable)).mutate();
+            }
+
+            Bitmap bitmap = Bitmap.createBitmap((int) widthTeste, (int) widthHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            bitmapTeste = bitmap;
+            return bitmap;
         }
-
-        Bitmap bitmap = Bitmap.createBitmap((int) widthTeste,
-                (int) widthHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
+        return bitmapTeste;
     }
 
 
@@ -779,7 +854,6 @@ public class PDFView extends RelativeLayout {
             canvas.translate(-localTranslationX, -localTranslationY);
             return;
         }
-
         canvas.drawBitmap(renderedBitmap, srcRect, dstRect, paint);
 
         if (Constants.DEBUG_MODE) {
@@ -1155,6 +1229,13 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPageSize(pageIndex);
     }
 
+    public Size getOriginalPageSize(int pageIndex) {
+        if (pdfFile == null) {
+            return new Size(0, 0);
+        }
+        return pdfFile.getOriginalPageSize(pageIndex);
+    }
+
     public int getCurrentPage() {
         return currentPage;
     }
@@ -1429,6 +1510,8 @@ public class PDFView extends RelativeLayout {
 
         private boolean swipeHorizontal = false;
 
+        private List<Hotspot> hotspots = new ArrayList<>();
+
         private boolean annotationRendering = false;
 
         private String password = null;
@@ -1550,6 +1633,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator withHotspots(List<Hotspot> hotspots) {
+            this.hotspots = hotspots;
+            return this;
+        }
+
         public Configurator password(String password) {
             this.password = password;
             return this;
@@ -1625,6 +1713,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setOnPageError(onPageErrorListener);
             PDFView.this.callbacks.setLinkHandler(linkHandler);
             PDFView.this.setSwipeEnabled(enableSwipe);
+            PDFView.this.setHotspots(hotspots);
             PDFView.this.setNightMode(nightMode);
             PDFView.this.enableDoubletap(enableDoubletap);
             PDFView.this.setDefaultPage(defaultPage);

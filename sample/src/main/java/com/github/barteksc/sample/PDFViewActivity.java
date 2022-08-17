@@ -120,13 +120,13 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromAsset(String assetFileName) {
 
         List<Hotspot> hotspots = new ArrayList<>();
-        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247));
-        hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679));
-        hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506));
-        hotspots.add(new Hotspot(0.0, 95.37037037037037));
-        hotspots.add(new Hotspot(9.07258064516129, 83.64198001814476));
-        hotspots.add(new Hotspot(66.33064516129032, 64.043214586046));
-        hotspots.add(new Hotspot(7.661290322580645, 8.333333333333332));
+        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
+        hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679, "game"));
+        hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506, "default"));
+        hotspots.add(new Hotspot(0.0, 95.37037037037037, "activity"));
+        hotspots.add(new Hotspot(9.07258064516129, 83.64198001814476, "link"));
+        hotspots.add(new Hotspot(66.33064516129032, 64.043214586046, "key"));
+        hotspots.add(new Hotspot(7.661290322580645, 8.333333333333332, "audio"));
 
 
         pdfFileName = assetFileName;

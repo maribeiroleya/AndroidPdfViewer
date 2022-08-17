@@ -669,34 +669,6 @@ public class PDFView extends RelativeLayout {
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
-
-
-
-
-
-        //Paint p = new Paint();
-
-
-
-        /*for(Hotspot hotspot : this.hotspots) {
-
-        }*/
-
-
-
-        /*Bitmap b = createBitMapForHotspots();
-        SizeF size = pdfFile.getPageSize(0);
-        float localTranslationX = pdfFile.getPageOffset(0, zoom);
-        float maxHeight = pdfFile.getMaxPageHeight();
-        float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
-        canvas.translate(localTranslationX, localTranslationY);
-
-        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-        Rect destRect = new Rect(0, 0, (int) toCurrentScale(size.getWidth()), (int) toCurrentScale(size.getHeight()));
-        canvas.drawBitmap(b, srcRect, destRect, null);
-
-        canvas.translate(-currentXOffset, -currentYOffset);*/
-
         for(Hotspot hotspot : this.hotspots) {
             Double xPercent = hotspot.getXpos()/100;
             Double yPercent = hotspot.getYpos()/100;
@@ -704,13 +676,10 @@ public class PDFView extends RelativeLayout {
             Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
             Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
 
-
-
             float widthTeste = toCurrentScale(45 + x.floatValue());
             float heightTeste = toCurrentScale(45 + y.floatValue());
 
-
-            Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.classification_play, widthTeste, heightTeste);
+            Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), widthTeste, heightTeste, hotspot);
 
             if (b.isRecycled()) {
                 return;
@@ -730,42 +699,12 @@ public class PDFView extends RelativeLayout {
         }
 
         canvas.translate(-currentXOffset, -currentYOffset);
-
-
-
-
-
     }
 
-/*
-    public Bitmap createBitMapForHotspots() {
-        Bitmap b = Bitmap.createBitmap(( (int)pdfFile.getPageSize(0).getWidth()), (int)pdfFile.getPageSize(0).getHeight(), Bitmap.Config.ARGB_8888 );
-        Canvas canvas = new Canvas(b);
 
-        Double xPercent = hotspots.get(0).getXpos()/100;
-        Double yPercent = hotspots.get(0).getYpos()/100;
-
-        Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
-        Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
-
-        float widthTeste = 100 + x.floatValue();
-        float heightTeste = 100 + y.floatValue();
-
-        Bitmap hotspost = this.getBitmapFromVectorDrawable(this.getContext(), R.drawable.teste, widthTeste, heightTeste);
-
-
-        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-        Rect destRect = new Rect((int) x.floatValue(), (int)y.floatValue(), (int) widthTeste, (int) heightTeste);
-        canvas.drawBitmap(hotspost, srcRect, destRect, null);
-
-
-
-        return b;
-    }*/
-
-
-    public Bitmap getBitmapFromVectorDrawable(Context context, int drawableId, float widthTeste, float widthHeight) {
-        if(bitmapTeste == null) {
+    public Bitmap getBitmapFromVectorDrawable(Context context, float widthTeste, float widthHeight, Hotspot hotspot) {
+        if(hotspot.getBitmap() == null) {
+            int drawableId = context.getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
             Drawable drawable = ContextCompat.getDrawable(context, drawableId);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 drawable = (DrawableCompat.wrap(drawable)).mutate();
@@ -775,10 +714,10 @@ public class PDFView extends RelativeLayout {
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
-            bitmapTeste = bitmap;
+            hotspot.setBitmap(bitmap);
             return bitmap;
         }
-        return bitmapTeste;
+        return hotspot.getBitmap();
     }
 
 

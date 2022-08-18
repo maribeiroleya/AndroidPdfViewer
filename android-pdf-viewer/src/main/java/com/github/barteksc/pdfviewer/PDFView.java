@@ -653,7 +653,6 @@ public class PDFView extends RelativeLayout {
         }
 
         // Draws parts
-        Log.e("DRAW THUMBANILS", "START");
         for (PagePart part : cacheManager.getPageParts()) {
             drawPart(canvas, part);
             if (callbacks.getOnDrawAll() != null
@@ -670,6 +669,11 @@ public class PDFView extends RelativeLayout {
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
         for(Hotspot hotspot : this.hotspots) {
+
+
+            Log.d("TESTE HOTSPOT", "TESTE HOTSPOT");
+
+
             Double xPercent = hotspot.getXpos()/100;
             Double yPercent = hotspot.getYpos()/100;
 
@@ -704,12 +708,8 @@ public class PDFView extends RelativeLayout {
 
     public Bitmap getBitmapFromVectorDrawable(Context context, float widthTeste, float widthHeight, Hotspot hotspot) {
         if(hotspot.getBitmap() == null) {
-            int drawableId = context.getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
-            Drawable drawable = ContextCompat.getDrawable(context, drawableId);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                drawable = (DrawableCompat.wrap(drawable)).mutate();
-            }
-
+            int drawableId = getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
+            Drawable drawable = getResources().getDrawable(drawableId);
             Bitmap bitmap = Bitmap.createBitmap((int) widthTeste, (int) widthHeight, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());

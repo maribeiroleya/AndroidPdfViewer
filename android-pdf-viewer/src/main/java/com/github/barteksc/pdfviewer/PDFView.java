@@ -669,36 +669,32 @@ public class PDFView extends RelativeLayout {
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
         for(Hotspot hotspot : this.hotspots) {
-
-
-            Log.d("TESTE HOTSPOT", "TESTE HOTSPOT");
-
-
             Double xPercent = hotspot.getXpos()/100;
             Double yPercent = hotspot.getYpos()/100;
 
             Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
             Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
 
-            float widthTeste = toCurrentScale(45 + x.floatValue());
-            float heightTeste = toCurrentScale(45 + y.floatValue());
+            float width = toCurrentScale(45 + x.floatValue());
+            float height = toCurrentScale(45 + y.floatValue());
 
-            Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), widthTeste, heightTeste, hotspot);
+            if(width > 0 && height > 0) {
+                Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), width, height, hotspot);
+                if (b.isRecycled()) {
+                    return;
+                }
+                else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-            if (b.isRecycled()) {
-                return;
-            }
-            else {
-                SizeF size = pdfFile.getPageSize(0);
-                float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                float maxHeight = pdfFile.getMaxPageHeight();
-                float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
+                    canvas.translate(localTranslationX, localTranslationY);
 
-                canvas.translate(localTranslationX, localTranslationY);
-
-                Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                Rect destRect = new Rect((int)toCurrentScale(x.floatValue()), (int)toCurrentScale(y.floatValue()), (int) widthTeste, (int) heightTeste);
-                canvas.drawBitmap(b, srcRect, destRect, null);
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int)toCurrentScale(x.floatValue()), (int)toCurrentScale(y.floatValue()), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
+                }
             }
         }
 
@@ -706,11 +702,11 @@ public class PDFView extends RelativeLayout {
     }
 
 
-    public Bitmap getBitmapFromVectorDrawable(Context context, float widthTeste, float widthHeight, Hotspot hotspot) {
+    public Bitmap getBitmapFromVectorDrawable(Context context, float width, float height, Hotspot hotspot) {
         if(hotspot.getBitmap() == null) {
             int drawableId = getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
             Drawable drawable = getResources().getDrawable(drawableId);
-            Bitmap bitmap = Bitmap.createBitmap((int) widthTeste, (int) widthHeight, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
@@ -829,22 +825,24 @@ public class PDFView extends RelativeLayout {
 
         this.pdfFile = pdfFile;
 
-        if (!renderingHandlerThread.isAlive()) {
-            renderingHandlerThread.start();
+        if(renderingHandlerThread != null) {
+            if (!renderingHandlerThread.isAlive()) {
+                renderingHandlerThread.start();
+            }
+            renderingHandler = new RenderingHandler(renderingHandlerThread.getLooper(), this);
+            renderingHandler.start();
+
+            if (scrollHandle != null) {
+                scrollHandle.setupLayout(this);
+                isScrollHandleInit = true;
+            }
+
+            dragPinchManager.enable();
+
+            callbacks.callOnLoadComplete(pdfFile.getPagesCount());
+
+            jumpTo(defaultPage, false);
         }
-        renderingHandler = new RenderingHandler(renderingHandlerThread.getLooper(), this);
-        renderingHandler.start();
-
-        if (scrollHandle != null) {
-            scrollHandle.setupLayout(this);
-            isScrollHandleInit = true;
-        }
-
-        dragPinchManager.enable();
-
-        callbacks.callOnLoadComplete(pdfFile.getPagesCount());
-
-        jumpTo(defaultPage, false);
     }
 
     void loadError(Throwable t) {

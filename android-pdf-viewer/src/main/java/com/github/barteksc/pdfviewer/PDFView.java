@@ -668,6 +668,8 @@ public class PDFView extends RelativeLayout {
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
+        float defaultWidth = 45*pdfFile.getPageSize(currentPage).getWidth()/pdfFile.getOriginalPageSize(currentPage).getWidth();
+
         for(Hotspot hotspot : this.hotspots) {
             Double xPercent = hotspot.getXpos()/100;
             Double yPercent = hotspot.getYpos()/100;
@@ -675,8 +677,8 @@ public class PDFView extends RelativeLayout {
             Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
             Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
 
-            float width = toCurrentScale(45 + x.floatValue());
-            float height = toCurrentScale(45 + y.floatValue());
+            float width = toCurrentScale(defaultWidth + x.floatValue());
+            float height = toCurrentScale(defaultWidth + y.floatValue());
 
             if(width > 0 && height > 0) {
                 Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), width, height, hotspot);

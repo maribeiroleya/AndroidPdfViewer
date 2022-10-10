@@ -668,7 +668,20 @@ public class PDFView extends RelativeLayout {
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
-        float defaultWidth = 45*pdfFile.getPageSize(currentPage).getWidth()/pdfFile.getOriginalPageSize(currentPage).getWidth();
+
+        SizeF sizeTESTE = pdfFile.getPageSize(currentPage);
+        Size testecoiso = pdfFile.getOriginalPageSize(currentPage);
+
+        float coiso = 45*sizeTESTE.getWidth()/testecoiso.getWidth();
+
+
+        Log.d("WIDTH DO JA BEBES size 1", String.format("%f", sizeTESTE.getWidth()));
+        Log.d("WIDTH DO JA BEBES size 2", String.format("%d", testecoiso.getWidth()));
+        Log.d("WIDTH DO JA BEBES size 3", String.format("%f", coiso));
+
+        //float coiso = (30*100/sizeTESTE.getWidth())/100 * sizeTESTE.getWidth();
+        //Log.d("WIDTH DO JA BEBES", String.format("%f", coiso));
+
 
         for(Hotspot hotspot : this.hotspots) {
             Double xPercent = hotspot.getXpos()/100;
@@ -677,8 +690,8 @@ public class PDFView extends RelativeLayout {
             Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
             Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
 
-            float width = toCurrentScale(defaultWidth + x.floatValue());
-            float height = toCurrentScale(defaultWidth + y.floatValue());
+            float width = toCurrentScale(coiso + x.floatValue());
+            float height = toCurrentScale(coiso + y.floatValue());
 
             if(width > 0 && height > 0) {
                 Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), width, height, hotspot);

@@ -65,6 +65,7 @@ import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.MathUtils;
+import com.github.barteksc.pdfviewer.util.Note;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
 import com.github.barteksc.pdfviewer.util.Util;
 import com.shockwave.pdfium.PdfDocument;
@@ -191,6 +192,7 @@ public class PDFView extends RelativeLayout {
     private boolean enableSwipe = true;
 
     private List<Hotspot> hotspots = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
 
     private boolean doubletapEnabled = true;
 
@@ -400,6 +402,11 @@ public class PDFView extends RelativeLayout {
 
     public void setHotspots(List<Hotspot> hotspots) {
         this.hotspots = hotspots;
+    }
+
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
     }
 
 
@@ -669,7 +676,6 @@ public class PDFView extends RelativeLayout {
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
         float defaultWidth = 60*pdfFile.getPageSize(currentPage).getWidth()/pdfFile.getOriginalPageSize(currentPage).getWidth()*getResources().getDisplayMetrics().density;
-
         for(Hotspot hotspot : this.hotspots) {
             Double xPercent = hotspot.getXpos()/100;
             Double yPercent = hotspot.getYpos()/100;
@@ -681,7 +687,7 @@ public class PDFView extends RelativeLayout {
             float height = toCurrentScale(defaultWidth + y.floatValue());
 
             if(width > 0 && height > 0) {
-                Bitmap b = this.getBitmapFromVectorDrawable(this.getContext(), width, height, hotspot);
+                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), width, height, hotspot);
                 if (b.isRecycled()) {
                     return;
                 }
@@ -700,11 +706,41 @@ public class PDFView extends RelativeLayout {
             }
         }
 
+        for(Note note : this.notes) {
+            Double xPercent = note.getXpos()/100;
+            Double yPercent = note.getYpos()/100;
+
+            Double x = pdfFile.getPageSize(0).getWidth()*xPercent*zoom;
+            Double y = pdfFile.getPageSize(0).getHeight()*yPercent*zoom;
+
+            float width = defaultWidth + x.floatValue();
+            float height = defaultWidth + y.floatValue();
+
+            if(width > 0 && height > 0) {
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), width, height, note);
+                if (b.isRecycled()) {
+                    return;
+                }
+                else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
+
+                    canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int)x.floatValue(), (int)y.floatValue(), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
+                }
+            }
+        }
+
         canvas.translate(-currentXOffset, -currentYOffset);
     }
 
 
-    public Bitmap getBitmapFromVectorDrawable(Context context, float width, float height, Hotspot hotspot) {
+    public Bitmap getBitmapForHotspotFromVectorDrawable(Context context, float width, float height, Hotspot hotspot) {
         if(hotspot.getBitmap() == null) {
             int drawableId = getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
             Drawable drawable = getResources().getDrawable(drawableId);
@@ -716,6 +752,21 @@ public class PDFView extends RelativeLayout {
             return bitmap;
         }
         return hotspot.getBitmap();
+    }
+
+
+    public Bitmap getBitmapForNoteFromVectorDrawable(Context context, float width, float height, Note note) {
+        if(note.getBitmap() == null) {
+            int drawableId = getResources().getIdentifier(String.format("annotation_%s", note.getColor()), "drawable", context.getPackageName());
+            Drawable drawable = getResources().getDrawable(drawableId);
+            Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            note.setBitmap(bitmap);
+            return bitmap;
+        }
+        return note.getBitmap();
     }
 
 
@@ -1450,6 +1501,7 @@ public class PDFView extends RelativeLayout {
         private boolean swipeHorizontal = false;
 
         private List<Hotspot> hotspots = new ArrayList<>();
+        private List<Note> notes = new ArrayList<>();
 
         private boolean annotationRendering = false;
 
@@ -1577,6 +1629,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator withNotes(List<Note> notes) {
+            this.notes = notes;
+            return this;
+        }
+
         public Configurator password(String password) {
             this.password = password;
             return this;
@@ -1653,6 +1710,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setLinkHandler(linkHandler);
             PDFView.this.setSwipeEnabled(enableSwipe);
             PDFView.this.setHotspots(hotspots);
+            PDFView.this.setNotes(notes);
             PDFView.this.setNightMode(nightMode);
             PDFView.this.enableDoubletap(enableDoubletap);
             PDFView.this.setDefaultPage(defaultPage);

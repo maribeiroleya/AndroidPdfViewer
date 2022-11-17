@@ -38,6 +38,7 @@ import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
+import com.github.barteksc.pdfviewer.util.Note;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.util.Size;
 import com.shockwave.pdfium.util.SizeF;
@@ -129,11 +130,17 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         hotspots.add(new Hotspot(7.661290322580645, 8.333333333333332, "audio"));
 
 
+        List<Note> notes = new ArrayList<>();
+        notes.add(new Note(50, 50, "red"));
+        notes.add(new Note(10, 10, "blue"));
+
+
         pdfFileName = assetFileName;
 
         pdfView.fromAsset(SAMPLE_FILE)
                 .swipeHorizontal(true)
                 .withHotspots(hotspots)
+                .withNotes(notes)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
                 .onActionEnd(this)

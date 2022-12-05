@@ -36,6 +36,7 @@ import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.Note;
@@ -128,6 +129,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         hotspots.add(new Hotspot(9.07258064516129, 83.64198001814476, "link"));
         hotspots.add(new Hotspot(66.33064516129032, 64.043214586046, "key"));
         hotspots.add(new Hotspot(7.661290322580645, 8.333333333333332, "audio"));
+        hotspots.add(new Hotspot(7.661290322580645, 18.333333333333332, "check_mark"));
+        hotspots.add(new Hotspot(17.661290322580645, 18.333333333333332, "document"));
+        hotspots.add(new Hotspot(17.661290322580645, 28.333333333333332, "image"));
+        hotspots.add(new Hotspot(27.661290322580645, 28.333333333333332, "link"));
+        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));
 
 
         List<Note> notes = new ArrayList<>();
@@ -135,7 +141,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         notes.add(new Note(10, 10, "blue"));
 
 
-        pdfFileName = assetFileName;
+
+        pdfView.setMinZoom(1);
+        pdfView.setMaxZoom(10);
+        pdfView.setMidZoom(5);
+        Constants.Pinch.MINIMUM_ZOOM = 1;
+        Constants.Pinch.MAXIMUM_ZOOM = 10;
 
         pdfView.fromAsset(SAMPLE_FILE)
                 .swipeHorizontal(true)
@@ -151,6 +162,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .onPageError(this)
                 .pageFitPolicy(FitPolicy.BOTH)
                 .load();
+
+        pdfView.setMaxZoom(10);
+        pdfView.setMinZoom(10);
     }
 
     private void displayFromUri(Uri uri) {
@@ -220,6 +234,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         Log.d("WIDTH", String.format("%d", pageSize.getWidth()));
         Log.d("HEIGHT", String.format("%d", pageSize.getHeight()));
+
+        pdfView.zoomTo(10);
     }
 
     public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {

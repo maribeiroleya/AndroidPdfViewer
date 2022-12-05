@@ -686,8 +686,8 @@ public class PDFView extends RelativeLayout {
             float width = toCurrentScale(defaultWidth + x.floatValue());
             float height = toCurrentScale(defaultWidth + y.floatValue());
 
-            if(width > 0 && height > 0) {
-                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), width, height, hotspot);
+            if((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
+                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
                 if (b.isRecycled()) {
                     return;
                 }

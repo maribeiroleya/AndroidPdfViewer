@@ -717,7 +717,7 @@ public class PDFView extends RelativeLayout {
             float height = defaultWidth + y.floatValue();
 
             if(width > 0 && height > 0) {
-                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), width, height, note);
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
                 if (b.isRecycled()) {
                     return;
                 }

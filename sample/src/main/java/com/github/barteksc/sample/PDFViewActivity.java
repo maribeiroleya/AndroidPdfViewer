@@ -122,7 +122,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromAsset(String assetFileName) {
 
         List<Hotspot> hotspots = new ArrayList<>();
-        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
+        /*hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
         hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679, "game"));
         hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506, "default"));
         hotspots.add(new Hotspot(0.0, 95.37037037037037, "activity"));
@@ -133,11 +133,21 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         hotspots.add(new Hotspot(17.661290322580645, 18.333333333333332, "document"));
         hotspots.add(new Hotspot(17.661290322580645, 28.333333333333332, "image"));
         hotspots.add(new Hotspot(27.661290322580645, 28.333333333333332, "link"));
-        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));
+        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));*/
 
 
         List<Note> notes = new ArrayList<>();
         notes.add(new Note(50, 50, "red"));
+        notes.add(new Note(10, 10, "blue"));
+        notes.add(new Note(40, 50, "red"));
+        notes.add(new Note(0, 10, "blue"));
+        notes.add(new Note(30, 50, "red"));
+        notes.add(new Note(100, 10, "blue"));
+        notes.add(new Note(20, 50, "red"));
+        notes.add(new Note(90, 10, "blue"));
+        notes.add(new Note(60, 50, "red"));
+        notes.add(new Note(80, 10, "blue"));
+        notes.add(new Note(45, 50, "red"));
         notes.add(new Note(10, 10, "blue"));
 
 

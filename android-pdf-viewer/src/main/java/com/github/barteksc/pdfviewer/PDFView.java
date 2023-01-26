@@ -710,8 +710,8 @@ public class PDFView extends RelativeLayout {
             Double xPercent = note.getXpos()/100;
             Double yPercent = note.getYpos()/100;
 
-            Double x = pdfFile.getPageSize(0).getWidth()*xPercent*zoom;
-            Double y = pdfFile.getPageSize(0).getHeight()*yPercent*zoom;
+            Double x = pdfFile.getPageSize(0).getWidth()*xPercent*zoom - defaultWidth/2;
+            Double y = pdfFile.getPageSize(0).getHeight()*yPercent*zoom - defaultWidth/2;
 
             float width = defaultWidth + x.floatValue();
             float height = defaultWidth + y.floatValue();

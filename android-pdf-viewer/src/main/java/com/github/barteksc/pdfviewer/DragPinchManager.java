@@ -44,7 +44,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private ScaleGestureDetector scaleGestureDetector;
 
     private boolean scrolling = false;
-    private boolean scaling = false;
+    public boolean scaling = false;
     private boolean enabled = false;
 
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {

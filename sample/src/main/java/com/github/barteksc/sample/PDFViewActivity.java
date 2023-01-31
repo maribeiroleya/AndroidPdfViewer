@@ -40,6 +40,8 @@ import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.Note;
+import com.github.barteksc.pdfviewer.util.TextLine;
+import com.github.barteksc.pdfviewer.util.TextNote;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.util.Size;
 import com.shockwave.pdfium.util.SizeF;
@@ -65,7 +67,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
 
-    public static final String SAMPLE_FILE = "2.pdf";
+    public static final String SAMPLE_FILE = "1.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @ViewById
@@ -151,6 +153,15 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         notes.add(new Note(10, 10, "blue"));
 
 
+        List<TextNote> textNotes = new ArrayList<>();
+        List<TextLine> lines = new ArrayList<>();
+        TextLine line = new TextLine(45, "#E25185", 0.43f, "Texto numero 1");
+        TextLine line2 = new TextLine(45, "#E25185", 0.43f, "Outra linha");
+        lines.add(line);
+        lines.add(line2);
+        TextNote textNote = new TextNote(51.3, 86.7, 40.4, 5.5, "#FAE32D", 0.28f, "#A551A5",10, 0.67f, lines);
+        textNotes.add(textNote);
+
 
         pdfView.setMinZoom(1);
         pdfView.setMaxZoom(10);
@@ -162,6 +173,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .swipeHorizontal(true)
                 .withHotspots(hotspots)
                 .withNotes(notes)
+                .withTextNotes(textNotes)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
                 .onActionEnd(this)
@@ -245,7 +257,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         Log.d("WIDTH", String.format("%d", pageSize.getWidth()));
         Log.d("HEIGHT", String.format("%d", pageSize.getHeight()));
 
-        pdfView.zoomTo(10);
+        //pdfView.zoomTo(10);
     }
 
     public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {

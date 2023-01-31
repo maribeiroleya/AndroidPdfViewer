@@ -67,6 +67,8 @@ import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.MathUtils;
 import com.github.barteksc.pdfviewer.util.Note;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
+import com.github.barteksc.pdfviewer.util.TextLine;
+import com.github.barteksc.pdfviewer.util.TextNote;
 import com.github.barteksc.pdfviewer.util.Util;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfiumCore;
@@ -193,6 +195,7 @@ public class PDFView extends RelativeLayout {
 
     private List<Hotspot> hotspots = new ArrayList<>();
     private List<Note> notes = new ArrayList<>();
+    private List<TextNote> textNotes = new ArrayList<>();
 
     private boolean doubletapEnabled = true;
 
@@ -407,6 +410,11 @@ public class PDFView extends RelativeLayout {
 
     public void setNotes(List<Note> notes) {
         this.notes = notes;
+    }
+
+
+    public void setTextNotes(List<TextNote> textNotes) {
+        this.textNotes = textNotes;
     }
 
 
@@ -675,66 +683,109 @@ public class PDFView extends RelativeLayout {
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
-        float defaultWidth = 60*pdfFile.getPageSize(currentPage).getWidth()/pdfFile.getOriginalPageSize(currentPage).getWidth()*getResources().getDisplayMetrics().density;
-        for(Hotspot hotspot : this.hotspots) {
-            Double xPercent = hotspot.getXpos()/100;
-            Double yPercent = hotspot.getYpos()/100;
+        //Log.d("dragPinchManager", String.format("%b", dragPinchManager.scaling));
 
-            Double x = pdfFile.getPageSize(0).getWidth()*xPercent;
-            Double y = pdfFile.getPageSize(0).getHeight()*yPercent;
+        //if(!dragPinchManager.scaling) {
 
-            float width = toCurrentScale(defaultWidth + x.floatValue());
-            float height = toCurrentScale(defaultWidth + y.floatValue());
+            float defaultWidth = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+            for (Hotspot hotspot : this.hotspots) {
+                Double xPercent = hotspot.getXpos() / 100;
+                Double yPercent = hotspot.getYpos() / 100;
 
-            if((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
-                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
-                if (b.isRecycled()) {
-                    return;
-                }
-                else {
-                    SizeF size = pdfFile.getPageSize(0);
-                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                    float maxHeight = pdfFile.getMaxPageHeight();
-                    float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
+                Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+                Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
 
-                    canvas.translate(localTranslationX, localTranslationY);
+                float width = toCurrentScale(defaultWidth + x.floatValue());
+                float height = toCurrentScale(defaultWidth + y.floatValue());
 
-                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                    Rect destRect = new Rect((int)toCurrentScale(x.floatValue()), (int)toCurrentScale(y.floatValue()), (int) width, (int) height);
-                    canvas.drawBitmap(b, srcRect, destRect, null);
-                }
-            }
-        }
+                if ((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
+                    Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
+                    if (b.isRecycled()) {
+                        return;
+                    } else {
+                        SizeF size = pdfFile.getPageSize(0);
+                        float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                        float maxHeight = pdfFile.getMaxPageHeight();
+                        float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-        for(Note note : this.notes) {
-            Double xPercent = note.getXpos()/100;
-            Double yPercent = note.getYpos()/100;
+                        canvas.translate(localTranslationX, localTranslationY);
 
-            Double x = pdfFile.getPageSize(0).getWidth()*xPercent*zoom - defaultWidth/2;
-            Double y = pdfFile.getPageSize(0).getHeight()*yPercent*zoom - defaultWidth/2;
-
-            float width = defaultWidth + x.floatValue();
-            float height = defaultWidth + y.floatValue();
-
-            if(width > 0 && height > 0) {
-                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
-                if (b.isRecycled()) {
-                    return;
-                }
-                else {
-                    SizeF size = pdfFile.getPageSize(0);
-                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                    float maxHeight = pdfFile.getMaxPageHeight();
-                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
-
-                    canvas.translate(localTranslationX, localTranslationY);
-
-                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                    Rect destRect = new Rect((int)x.floatValue(), (int)y.floatValue(), (int) width, (int) height);
-                    canvas.drawBitmap(b, srcRect, destRect, null);
+                        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                        Rect destRect = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) width, (int) height);
+                        canvas.drawBitmap(b, srcRect, destRect, null);
+                    }
                 }
             }
-        }
+
+            for (Note note : this.notes) {
+                Double xPercent = note.getXpos() / 100;
+                Double yPercent = note.getYpos() / 100;
+
+                Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidth / 2;
+                Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidth / 2;
+
+                float width = defaultWidth + x.floatValue();
+                float height = defaultWidth + y.floatValue();
+
+                if (width > 0 && height > 0) {
+                    Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
+                    if (b.isRecycled()) {
+                        return;
+                    } else {
+                        SizeF size = pdfFile.getPageSize(0);
+                        float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                        float maxHeight = pdfFile.getMaxPageHeight();
+                        float localTranslationY = (maxHeight - size.getHeight()) / 2;
+
+                        canvas.translate(localTranslationX, localTranslationY);
+
+                        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                        Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
+                        canvas.drawBitmap(b, srcRect, destRect, null);
+                    }
+                }
+            }
+
+            for (TextNote textNote : this.textNotes) {
+                Double xPercent = textNote.getXpos() / 100;
+                Double yPercent = textNote.getYpos() / 100;
+                Double widthPercent = textNote.getWidth() / 100;
+                Double heightPercent = textNote.getHeight() / 100;
+
+                Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+                Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+
+
+
+                Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
+                Double left = widthDouble * 0.025;
+                widthDouble = widthDouble + left*2;
+                Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
+                heightDouble = heightDouble + heightDouble * 0.03;
+                float width = toCurrentScale(widthDouble.floatValue() + x.floatValue());
+                float height = toCurrentScale(heightDouble.floatValue() + y.floatValue());
+
+                Paint paintBackground = new Paint();
+                paintBackground.setColor(Color.parseColor(textNote.getBackgroundColor()));
+                paintBackground.setAlpha(textNote.getBackgroundAlpha());
+
+                Paint strokePaint = new Paint();
+                strokePaint.setStyle(Paint.Style.STROKE);
+                strokePaint.setColor(Color.parseColor(textNote.getBorderColor()));
+                strokePaint.setAlpha(textNote.getBorderAlpha());
+                strokePaint.setStrokeWidth(textNote.getBorderSize());
+
+
+                Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width + textNote.getBorderSize() * 2), (int) (height + textNote.getBorderSize() * 2));
+                Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2, (int) height + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2);
+                canvas.drawRect(testBorder, strokePaint);
+                canvas.drawRect(testRect, paintBackground);
+
+
+                Bitmap b = getBitMapForTextNote(toCurrentScale(widthDouble.floatValue()), toCurrentScale(heightDouble.floatValue()), textNote, left);
+                Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                canvas.drawBitmap(b, srcRect, testRect, null);
+            }
 
         canvas.translate(-currentXOffset, -currentYOffset);
     }
@@ -768,6 +819,27 @@ public class PDFView extends RelativeLayout {
         }
         return note.getBitmap();
     }
+
+
+    public Bitmap getBitMapForTextNote(float width, float height, TextNote note, Double left) {
+        Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas();
+        canvas.setBitmap(bitmap);
+        int y = 0;
+        for(TextLine line : note.getLines()) {
+            Paint textPaint  = new Paint();
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            textPaint.setColor(Color.parseColor(line.getFontColor()));
+            textPaint.setAlpha(line.getFontAlpha());
+            textPaint.setTextSize(toCurrentScale((int)line.getFontSize()));
+            y = y + (int)line.getFontSize();
+            canvas.drawText(line.getText(), toCurrentScale(left.floatValue()), toCurrentScale(y) ,textPaint);
+        }
+        return bitmap;
+    }
+
+
+
 
 
     private void drawWithListener(Canvas canvas, int page, OnDrawListener listener) {
@@ -842,6 +914,9 @@ public class PDFView extends RelativeLayout {
             canvas.translate(-localTranslationX, -localTranslationY);
             return;
         }
+
+        Log.d("OK DRAW", "DRAW PART");
+
         canvas.drawBitmap(renderedBitmap, srcRect, dstRect, paint);
 
         if (Constants.DEBUG_MODE) {
@@ -1502,6 +1577,7 @@ public class PDFView extends RelativeLayout {
 
         private List<Hotspot> hotspots = new ArrayList<>();
         private List<Note> notes = new ArrayList<>();
+        private List<TextNote> textNotes = new ArrayList<>();
 
         private boolean annotationRendering = false;
 
@@ -1634,6 +1710,11 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator withTextNotes(List<TextNote> textNotes) {
+            this.textNotes = textNotes;
+            return this;
+        }
+
         public Configurator password(String password) {
             this.password = password;
             return this;
@@ -1711,6 +1792,7 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setSwipeEnabled(enableSwipe);
             PDFView.this.setHotspots(hotspots);
             PDFView.this.setNotes(notes);
+            PDFView.this.setTextNotes(textNotes);
             PDFView.this.setNightMode(nightMode);
             PDFView.this.enableDoubletap(enableDoubletap);
             PDFView.this.setDefaultPage(defaultPage);

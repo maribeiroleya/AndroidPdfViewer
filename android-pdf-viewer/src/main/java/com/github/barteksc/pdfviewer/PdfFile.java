@@ -150,9 +150,7 @@ class PdfFile {
         if (docPage < 0) {
             return new Size(0, 0);
         }
-        Log.d("COISO COISO", String.format("%d", pdfiumCore.getPageWidthPoint(pdfDocument, documentPage(0))));
         return pdfiumCore.getPageSize(pdfDocument, documentPage(0));
-        //return originalPageSizes.get(pageIndex);
     }
 
 

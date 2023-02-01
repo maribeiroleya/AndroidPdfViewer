@@ -749,8 +749,8 @@ public class PDFView extends RelativeLayout {
             for (TextNote textNote : this.textNotes) {
                 Double xPercent = textNote.getXpos() / 100;
                 Double yPercent = textNote.getYpos() / 100;
-                Double widthPercent = textNote.getWidth() / 100;
-                Double heightPercent = textNote.getHeight() / 100;
+                Double widthPercent = (textNote.getWidth() + 2.5) / 100;
+                Double heightPercent = (textNote.getHeight() + 1.5) / 100;
 
                 Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
                 Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
@@ -758,10 +758,10 @@ public class PDFView extends RelativeLayout {
 
 
                 Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
-                Double left = widthDouble * 0.025;
-                widthDouble = widthDouble + left*2;
+                Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
+                //widthDouble = widthDouble + left*2;
                 Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
-                heightDouble = heightDouble + heightDouble * 0.03;
+                //heightDouble = heightDouble + pdfFile.getPageSize(0).getHeight() * 0.03;
                 float width = toCurrentScale(widthDouble.floatValue() + x.floatValue());
                 float height = toCurrentScale(heightDouble.floatValue() + y.floatValue());
 

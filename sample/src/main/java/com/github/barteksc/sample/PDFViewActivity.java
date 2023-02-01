@@ -159,8 +159,17 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         TextLine line2 = new TextLine(45, "#E25185", 0.43f, "Outra linha");
         lines.add(line);
         lines.add(line2);
-        TextNote textNote = new TextNote(51.3, 86.7, 40.4, 5.5, "transparent", 0.0f, "#A551A5",10, 0.67f, lines);
+        TextNote textNote = new TextNote(50.9, 86.7, 40.4, 5.5, "transparent", 0.0f, "#A551A5",10, 0.67f, lines);
+
+
+
+
+        List<TextLine> lines1 = new ArrayList<>();
+        TextLine line3 = new TextLine(16, "#000000", 1.0f, "fff");
+        lines1.add(line3);
+        TextNote textNote1 = new TextNote(8.4, 2, 73.7, 3.1, "transparent", 0.0f, "#000000",1, 1.0f, lines1);
         textNotes.add(textNote);
+        textNotes.add(textNote1);
 
 
         pdfView.setMinZoom(1);

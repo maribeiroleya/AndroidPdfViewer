@@ -687,111 +687,113 @@ public class PDFView extends RelativeLayout {
 
         //if(!dragPinchManager.scaling) {
 
-            float defaultWidth = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
-            for (Hotspot hotspot : this.hotspots) {
-                Double xPercent = hotspot.getXpos() / 100;
-                Double yPercent = hotspot.getYpos() / 100;
+        float defaultWidth = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
 
-                Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
-                Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+        for (TextNote textNote : this.textNotes) {
+            Double xPercent = textNote.getXpos() / 100;
+            Double yPercent = textNote.getYpos() / 100;
+            Double widthPercent = (textNote.getWidth() + 2.5) / 100;
+            Double heightPercent = (textNote.getHeight() + 1.5) / 100;
 
-                float width = toCurrentScale(defaultWidth + x.floatValue());
-                float height = toCurrentScale(defaultWidth + y.floatValue());
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
 
-                if ((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
-                    Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
-                    if (b.isRecycled()) {
-                        return;
-                    } else {
-                        SizeF size = pdfFile.getPageSize(0);
-                        float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                        float maxHeight = pdfFile.getMaxPageHeight();
-                        float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-                        canvas.translate(localTranslationX, localTranslationY);
 
-                        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                        Rect destRect = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) width, (int) height);
-                        canvas.drawBitmap(b, srcRect, destRect, null);
-                    }
+            Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
+            Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
+            //widthDouble = widthDouble + left*2;
+            Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
+            Double top = pdfFile.getPageSize(0).getHeight() * 0.015/2;
+            //heightDouble = heightDouble + pdfFile.getPageSize(0).getHeight() * 0.03;
+            float width = toCurrentScale(widthDouble.floatValue() + x.floatValue());
+            float height = toCurrentScale(heightDouble.floatValue() + y.floatValue());
+
+            Paint paintBackground = new Paint();
+            paintBackground.setColor(parseColor(textNote.getBackgroundColor()));
+            paintBackground.setAlpha(textNote.getBackgroundAlpha());
+
+            Paint strokePaint = new Paint();
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setColor(parseColor(textNote.getBorderColor()));
+            strokePaint.setAlpha(textNote.getBorderAlpha());
+            strokePaint.setStrokeWidth(textNote.getBorderSize());
+
+
+            //Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width + textNote.getBorderSize() * 2), (int) (height + textNote.getBorderSize() * 2));
+            Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width), (int) (height));
+            //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2, (int) height + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2);
+            Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
+            canvas.drawRect(testBorder, strokePaint);
+            canvas.drawRect(testRect, paintBackground);
+
+
+            Rect testRect2 = new Rect(testRect.left + (int)toCurrentScale(left.floatValue()), testRect.top + (int)toCurrentScale(top.floatValue()), testRect.right - (int)toCurrentScale(left.floatValue()), testRect.bottom - (int)toCurrentScale(top.floatValue()));
+
+            Bitmap b = getBitMapForTextNote(testRect2.right-testRect2.left, testRect2.bottom-testRect2.top, textNote);
+            Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+
+            canvas.drawBitmap(b, srcRect, testRect2, null);
+        }
+
+        for (Note note : this.notes) {
+            Double xPercent = note.getXpos() / 100;
+            Double yPercent = note.getYpos() / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidth / 2;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidth / 2;
+
+            float width = defaultWidth + x.floatValue();
+            float height = defaultWidth + y.floatValue();
+
+            if (width > 0 && height > 0) {
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
+                if (b.isRecycled()) {
+                    return;
+                } else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
+
+                    canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
                 }
             }
+        }
 
-            for (Note note : this.notes) {
-                Double xPercent = note.getXpos() / 100;
-                Double yPercent = note.getYpos() / 100;
 
-                Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidth / 2;
-                Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidth / 2;
+        for (Hotspot hotspot : this.hotspots) {
+            Double xPercent = hotspot.getXpos() / 100;
+            Double yPercent = hotspot.getYpos() / 100;
 
-                float width = defaultWidth + x.floatValue();
-                float height = defaultWidth + y.floatValue();
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
 
-                if (width > 0 && height > 0) {
-                    Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
-                    if (b.isRecycled()) {
-                        return;
-                    } else {
-                        SizeF size = pdfFile.getPageSize(0);
-                        float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                        float maxHeight = pdfFile.getMaxPageHeight();
-                        float localTranslationY = (maxHeight - size.getHeight()) / 2;
+            float width = toCurrentScale(defaultWidth + x.floatValue());
+            float height = toCurrentScale(defaultWidth + y.floatValue());
 
-                        canvas.translate(localTranslationX, localTranslationY);
+            if ((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
+                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
+                if (b.isRecycled()) {
+                    return;
+                } else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-                        Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                        Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
-                        canvas.drawBitmap(b, srcRect, destRect, null);
-                    }
+                    canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
                 }
             }
-
-            for (TextNote textNote : this.textNotes) {
-                Double xPercent = textNote.getXpos() / 100;
-                Double yPercent = textNote.getYpos() / 100;
-                Double widthPercent = (textNote.getWidth() + 2.5) / 100;
-                Double heightPercent = (textNote.getHeight() + 1.5) / 100;
-
-                Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
-                Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
-
-
-
-                Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
-                Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
-                //widthDouble = widthDouble + left*2;
-                Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
-                Double top = pdfFile.getPageSize(0).getHeight() * 0.015/2;
-                //heightDouble = heightDouble + pdfFile.getPageSize(0).getHeight() * 0.03;
-                float width = toCurrentScale(widthDouble.floatValue() + x.floatValue());
-                float height = toCurrentScale(heightDouble.floatValue() + y.floatValue());
-
-                Paint paintBackground = new Paint();
-                paintBackground.setColor(parseColor(textNote.getBackgroundColor()));
-                paintBackground.setAlpha(textNote.getBackgroundAlpha());
-
-                Paint strokePaint = new Paint();
-                strokePaint.setStyle(Paint.Style.STROKE);
-                strokePaint.setColor(parseColor(textNote.getBorderColor()));
-                strokePaint.setAlpha(textNote.getBorderAlpha());
-                strokePaint.setStrokeWidth(textNote.getBorderSize());
-
-
-                //Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width + textNote.getBorderSize() * 2), (int) (height + textNote.getBorderSize() * 2));
-                Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width), (int) (height));
-                //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2, (int) height + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2);
-                Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
-                canvas.drawRect(testBorder, strokePaint);
-                canvas.drawRect(testRect, paintBackground);
-
-
-                Rect testRect2 = new Rect(testRect.left + (int)toCurrentScale(left.floatValue()), testRect.top + (int)toCurrentScale(top.floatValue()), testRect.right - (int)toCurrentScale(left.floatValue()), testRect.bottom - (int)toCurrentScale(top.floatValue()));
-
-                Bitmap b = getBitMapForTextNote(testRect2.right-testRect2.left, testRect2.bottom-testRect2.top, textNote);
-                Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-
-                canvas.drawBitmap(b, srcRect, testRect2, null);
-            }
+        }
 
         canvas.translate(-currentXOffset, -currentYOffset);
     }

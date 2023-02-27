@@ -687,7 +687,7 @@ public class PDFView extends RelativeLayout {
 
         //if(!dragPinchManager.scaling) {
 
-        float defaultWidth = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+        float defaultWidth = 75 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
 
         for (TextNote textNote : this.textNotes) {
             Double xPercent = textNote.getXpos() / 100;

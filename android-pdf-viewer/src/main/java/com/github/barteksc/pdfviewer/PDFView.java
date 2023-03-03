@@ -687,7 +687,7 @@ public class PDFView extends RelativeLayout {
 
         //if(!dragPinchManager.scaling) {
 
-        float defaultWidth = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+        float defaultWidthHotspot = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
 
         for (Hotspot hotspot : this.hotspots) {
             Double xPercent = hotspot.getXpos() / 100;
@@ -696,11 +696,11 @@ public class PDFView extends RelativeLayout {
             Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
             Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
 
-            float width = toCurrentScale(defaultWidth + x.floatValue());
-            float height = toCurrentScale(defaultWidth + y.floatValue());
+            float width = toCurrentScale(defaultWidthHotspot + x.floatValue());
+            float height = toCurrentScale(defaultWidthHotspot + y.floatValue());
 
-            if ((defaultWidth + x.floatValue()) > 10 && (defaultWidth + y.floatValue()) > 10) {
-                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidth + x.floatValue(), defaultWidth + y.floatValue(), hotspot);
+            if ((defaultWidthHotspot + x.floatValue()) > 10 && (defaultWidthHotspot + y.floatValue()) > 10) {
+                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidthHotspot + x.floatValue(), defaultWidthHotspot + y.floatValue(), hotspot);
                 if (b.isRecycled()) {
                     return;
                 } else {
@@ -718,18 +718,19 @@ public class PDFView extends RelativeLayout {
             }
         }
 
+        float defaultWidthNotes = 70 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
         for (Note note : this.notes) {
             Double xPercent = note.getXpos() / 100;
             Double yPercent = note.getYpos() / 100;
 
-            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidth / 2;
-            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidth / 2;
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidthNotes / 2;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidthNotes / 2;
 
-            float width = defaultWidth + x.floatValue();
-            float height = defaultWidth + y.floatValue();
+            float width = defaultWidthNotes + x.floatValue();
+            float height = defaultWidthNotes + y.floatValue();
 
             if (width > 0 && height > 0) {
-                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidth, defaultWidth, note);
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidthNotes, defaultWidthNotes, note);
                 if (b.isRecycled()) {
                     return;
                 } else {

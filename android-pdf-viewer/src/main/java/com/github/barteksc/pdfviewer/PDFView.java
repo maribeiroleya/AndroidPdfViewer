@@ -718,37 +718,6 @@ public class PDFView extends RelativeLayout {
             }
         }
 
-        float defaultWidthNotes = 70 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
-        for (Note note : this.notes) {
-            Double xPercent = note.getXpos() / 100;
-            Double yPercent = note.getYpos() / 100;
-
-            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidthNotes / 2;
-            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidthNotes / 2;
-
-            float width = defaultWidthNotes + x.floatValue();
-            float height = defaultWidthNotes + y.floatValue();
-
-            if (width > 0 && height > 0) {
-                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidthNotes, defaultWidthNotes, note);
-                if (b.isRecycled()) {
-                    return;
-                } else {
-                    SizeF size = pdfFile.getPageSize(0);
-                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
-                    float maxHeight = pdfFile.getMaxPageHeight();
-                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
-
-                    //canvas.translate(localTranslationX, localTranslationY);
-
-                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-                    Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
-                    canvas.drawBitmap(b, srcRect, destRect, null);
-                }
-            }
-        }
-
-
         for (TextNote textNote : this.textNotes) {
             Double xPercent = textNote.getXpos() / 100;
             Double yPercent = textNote.getYpos() / 100;
@@ -796,10 +765,35 @@ public class PDFView extends RelativeLayout {
             canvas.drawBitmap(b, srcRect, testRect2, null);
         }
 
+        float defaultWidthNotes = 70 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+        for (Note note : this.notes) {
+            Double xPercent = note.getXpos() / 100;
+            Double yPercent = note.getYpos() / 100;
 
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidthNotes / 2;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidthNotes / 2;
 
+            float width = defaultWidthNotes + x.floatValue();
+            float height = defaultWidthNotes + y.floatValue();
 
+            if (width > 0 && height > 0) {
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidthNotes, defaultWidthNotes, note);
+                if (b.isRecycled()) {
+                    return;
+                } else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
 
+                    //canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
+                }
+            }
+        }
 
         canvas.translate(-currentXOffset, -currentYOffset);
     }

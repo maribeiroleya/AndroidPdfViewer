@@ -709,7 +709,7 @@ public class PDFView extends RelativeLayout {
                     float maxHeight = pdfFile.getMaxPageHeight();
                     float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
 
-                    canvas.translate(localTranslationX, localTranslationY);
+                    //canvas.translate(localTranslationX, localTranslationY);
 
                     Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
                     Rect destRect = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) width, (int) height);
@@ -739,7 +739,7 @@ public class PDFView extends RelativeLayout {
                     float maxHeight = pdfFile.getMaxPageHeight();
                     float localTranslationY = (maxHeight - size.getHeight()) / 2;
 
-                    canvas.translate(localTranslationX, localTranslationY);
+                    //canvas.translate(localTranslationX, localTranslationY);
 
                     Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
                     Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);

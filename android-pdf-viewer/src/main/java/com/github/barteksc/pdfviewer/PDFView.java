@@ -740,12 +740,16 @@ public class PDFView extends RelativeLayout {
 
             Paint paintBackground = new Paint();
             paintBackground.setColor(parseColor(textNote.getBackgroundColor()));
-            paintBackground.setAlpha(textNote.getBackgroundAlpha());
+            if(!textNote.getBackgroundColor().equals("transparent")) {
+                paintBackground.setAlpha(textNote.getBackgroundAlpha());
+            }
 
             Paint strokePaint = new Paint();
             strokePaint.setStyle(Paint.Style.STROKE);
             strokePaint.setColor(parseColor(textNote.getBorderColor()));
-            strokePaint.setAlpha(textNote.getBorderAlpha());
+            if(!textNote.getBorderColor().equals("transparent")) {
+                strokePaint.setAlpha(textNote.getBorderAlpha());
+            }
             strokePaint.setStrokeWidth(textNote.getBorderSize());
 
 
@@ -846,7 +850,9 @@ public class PDFView extends RelativeLayout {
             Paint textPaint  = new Paint();
             textPaint.setTextAlign(Paint.Align.LEFT);
             textPaint.setColor(parseColor(line.getFontColor()));
-            textPaint.setAlpha(line.getFontAlpha());
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint.setAlpha(line.getFontAlpha());
+            }
             textPaint.setTextSize(toCurrentScale((int)line.getFontSize()));
             y = y + (int)(line.getFontSize() - line.getFontSize()*0.15);
             canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);

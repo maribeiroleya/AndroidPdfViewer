@@ -122,6 +122,7 @@ class AnimationManager {
     public void stopFling() {
         flinging = false;
         scroller.forceFinished(true);
+        pdfView.moveEnds();
     }
 
     public boolean isFlinging() {

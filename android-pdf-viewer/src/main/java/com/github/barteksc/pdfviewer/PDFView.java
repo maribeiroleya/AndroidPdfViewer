@@ -1256,7 +1256,6 @@ public class PDFView extends RelativeLayout {
      * Change the zoom level
      */
     public void zoomTo(float zoom) {
-        Log.d("Zoom TO", String.format("%f", zoom));
         this.zoom = zoom;
     }
 

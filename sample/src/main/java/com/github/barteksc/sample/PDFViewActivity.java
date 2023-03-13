@@ -35,6 +35,7 @@ import com.github.barteksc.pdfviewer.listener.OnActionEnd;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
+import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
 import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
@@ -60,7 +61,7 @@ import java.util.List;
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.options)
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
-        OnPageErrorListener, OnActionEnd {
+        OnPageErrorListener, OnActionEnd, OnPageScrollListener {
 
     private static final String TAG = PDFViewActivity.class.getSimpleName();
 
@@ -185,6 +186,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .withTextNotes(textNotes)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
+                .onPageScroll(this)
                 .onActionEnd(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
@@ -306,5 +308,17 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     public void actionEnd() {
         Log.d("TESTE", "END");
+    }
+
+
+    @Override
+    public void onPageScrolledEnd() {
+        Log.d("TESTE", "onPageScrolledEnd");
+    }
+
+
+    @Override
+    public void onPageScrolled(int page, float positionOffset) {
+        //Log.d("TESTE", "onPageScrolled");
     }
 }

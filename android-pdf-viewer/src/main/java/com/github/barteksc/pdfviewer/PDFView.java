@@ -1256,6 +1256,11 @@ public class PDFView extends RelativeLayout {
         this.zoom = zoom;
     }
 
+
+    public float getZoomScale() {
+        return this.zoom;
+    }
+
     /**
      * Change the zoom level, relatively to a pivot point.
      * It will call moveTo() to make sure the given point stays

@@ -149,11 +149,7 @@ public class Callbacks {
 
     public void callOnPageSwipeChange(int offset) {
         if (onPageSwipeChangeListener != null) {
-            Log.d("callOnPageSwipeChange", String.format("offset: %d",offset));
             onPageSwipeChangeListener.onPageSwipeChange(offset);
-        }
-        else {
-            Log.d("ja_foste", String.format("offset: %d",offset));
         }
     }
 
@@ -164,6 +160,12 @@ public class Callbacks {
     public void callOnPageScroll(int currentPage, float offset) {
         if (onPageScrollListener != null) {
             onPageScrollListener.onPageScrolled(currentPage, offset);
+        }
+    }
+
+    public void callOnPageScrollEnds() {
+        if (onPageScrollListener != null) {
+            onPageScrollListener.onPageScrolledEnd();
         }
     }
 

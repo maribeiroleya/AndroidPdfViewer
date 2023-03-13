@@ -937,8 +937,6 @@ public class PDFView extends RelativeLayout {
             return;
         }
 
-        Log.d("OK DRAW", "DRAW PART");
-
         canvas.drawBitmap(renderedBitmap, srcRect, dstRect, paint);
 
         if (Constants.DEBUG_MODE) {
@@ -1032,6 +1030,12 @@ public class PDFView extends RelativeLayout {
         }
         redraw();
     }
+
+
+    public void moveEnds() {
+        callbacks.callOnPageScrollEnds();
+    }
+
 
     public void moveTo(float offsetX, float offsetY) {
         moveTo(offsetX, offsetY, true);

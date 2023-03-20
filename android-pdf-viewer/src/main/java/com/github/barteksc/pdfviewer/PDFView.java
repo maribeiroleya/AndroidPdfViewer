@@ -842,6 +842,8 @@ public class PDFView extends RelativeLayout {
 
 
     public Bitmap getBitMapForTextNote(float width, float height, TextNote note) {
+        double relation = Math.sqrt(width * height);
+        relation = relation / 250;
         Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas();
         canvas.setBitmap(bitmap);
@@ -853,12 +855,52 @@ public class PDFView extends RelativeLayout {
             if(!line.getFontColor().equals("transparent")) {
                 textPaint.setAlpha(line.getFontAlpha());
             }
-            textPaint.setTextSize(toCurrentScale((int)line.getFontSize()));
-            y = y + (int)(line.getFontSize() - line.getFontSize()*0.15);
+            int lineHeight = (int)(line.getFontSize());
+            textPaint.setTextSize(toCurrentScale(lineHeight));
+            y = y + (int)(lineHeight - lineHeight*0.15);
             canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
         }
         return bitmap;
     }
+
+
+    /*
+
+    public Bitmap getBitMapForTextNote(float width, float height, TextNote note) {
+
+
+        Log.d("TESTE WIDTH", String.format("%f", width));
+        Log.d("TESTE HEIGHT", String.format("%f", height));
+
+
+        Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+
+        double relation = Math.sqrt(width * height);
+        relation = relation / 250;
+
+        Log.d("TESTE relation", String.format("%f", relation));
+
+        Canvas canvas = new Canvas();
+        canvas.setBitmap(bitmap);
+        int y = 0;
+        canvas.drawColor(Color.BLUE);
+        for(TextLine line : note.getLines()) {
+            Paint textPaint  = new Paint();
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            textPaint.setColor(parseColor(line.getFontColor()));
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint.setAlpha(line.getFontAlpha());
+            }
+            int lineHeight = (int)(line.getFontSize() * relation);
+            //int lineHeight = (int)convertPixelsToDp(line.getFontSize());
+            textPaint.setTextSize(toCurrentScale(lineHeight));
+            y = y + (int)(lineHeight - lineHeight*0.15);
+            y = y + lineHeight;
+            canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
+        }
+        return bitmap;
+    }
+     */
 
 
 

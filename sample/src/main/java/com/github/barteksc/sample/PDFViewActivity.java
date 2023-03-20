@@ -141,7 +141,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         List<Note> notes = new ArrayList<>();
         notes.add(new Note(50, 50, "red"));
-        notes.add(new Note(10, 10, "blue"));
+        /*notes.add(new Note(10, 10, "blue"));
         notes.add(new Note(40, 50, "red"));
         notes.add(new Note(0, 10, "blue"));
         notes.add(new Note(30, 50, "red"));
@@ -151,7 +151,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         notes.add(new Note(60, 50, "red"));
         notes.add(new Note(80, 10, "blue"));
         notes.add(new Note(45, 50, "red"));
-        notes.add(new Note(10, 10, "blue"));
+        notes.add(new Note(10, 10, "blue"));*/
 
 
         List<TextNote> textNotes = new ArrayList<>();

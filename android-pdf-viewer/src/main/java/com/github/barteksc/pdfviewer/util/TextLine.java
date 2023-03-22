@@ -8,12 +8,15 @@ public class TextLine {
     private int fontAlpha;
     private String text;
 
+    private float letterSpace;
+
 
     public TextLine(double fontSize, String fontColor, float fontAlpha, String text) {
         this.fontSize = fontSize;
         this.fontColor = fontColor;
         this.fontAlpha = (int)(255*fontAlpha);
         this.text = text;
+        this.letterSpace = 0.0f;
     }
 
 
@@ -34,5 +37,15 @@ public class TextLine {
 
     public String getText() {
         return this.text;
+    }
+
+
+    public void setLetterSpace(float letterSpace) {
+        this.letterSpace = letterSpace;
+    }
+
+
+    public float getLetterSpace() {
+        return letterSpace;
     }
 }

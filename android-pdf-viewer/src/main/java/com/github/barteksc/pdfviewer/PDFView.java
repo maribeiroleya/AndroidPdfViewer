@@ -883,6 +883,9 @@ public class PDFView extends RelativeLayout {
             }
             int lineHeight = (int)(line.getFontSize() * relation);
             textPaint.setTextSize(toCurrentScale(lineHeight));
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+                textPaint.setLetterSpacing(line.getLetterSpace());
+            }
             y = y + (int)(lineHeight - lineHeight*0.15);
             canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
         }

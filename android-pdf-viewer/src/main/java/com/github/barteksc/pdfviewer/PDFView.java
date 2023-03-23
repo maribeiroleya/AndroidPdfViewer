@@ -34,6 +34,9 @@ import android.os.Build;
 import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.RelativeLayout;
@@ -873,9 +876,9 @@ public class PDFView extends RelativeLayout {
 
         Canvas canvas = new Canvas();
         canvas.setBitmap(bitmap);
-        int y = 0;
+        /*int y = 0;
         for(TextLine line : note.getLines()) {
-            Paint textPaint  = new Paint();
+            TextPaint textPaint  = new TextPaint();
             textPaint.setTextAlign(Paint.Align.LEFT);
             textPaint.setColor(parseColor(line.getFontColor()));
             if(!line.getFontColor().equals("transparent")) {
@@ -883,12 +886,42 @@ public class PDFView extends RelativeLayout {
             }
             int lineHeight = (int)(line.getFontSize() * relation);
             textPaint.setTextSize(toCurrentScale(lineHeight));
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
                 textPaint.setLetterSpacing(line.getLetterSpace());
+
             }
             y = y + (int)(lineHeight - lineHeight*0.15);
-            canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
+            //canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
+        }*/
+
+        TextLine line = note.getLines().get(0);
+        TextPaint textPaint  = new TextPaint();
+        textPaint.setTextAlign(Paint.Align.LEFT);
+        textPaint.setColor(parseColor(line.getFontColor()));
+        if(!line.getFontColor().equals("transparent")) {
+            textPaint.setAlpha(line.getFontAlpha());
         }
+        int lineHeight = (int)(line.getFontSize() * relation);
+        textPaint.setTextSize(toCurrentScale(lineHeight));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+            textPaint.setLetterSpacing(line.getLetterSpace());
+
+        }
+
+        //TextPaint
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            StaticLayout teste = StaticLayout.Builder
+                    .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
+                    .setLineSpacing(0, 0.75f)
+                    .build();
+            canvas.translate(0, toCurrentScale(-10));
+            teste.draw(canvas);
+
+        }
+
+
         return bitmap;
     }
 

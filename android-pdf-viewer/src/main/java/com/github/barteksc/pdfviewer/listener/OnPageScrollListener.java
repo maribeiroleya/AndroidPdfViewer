@@ -30,5 +30,5 @@ public interface OnPageScrollListener {
     void onPageScrolled(int page, float positionOffset);
 
 
-    void onPageScrolledEnd();
+    void onPageScrolledEnd(float zoom);
 }

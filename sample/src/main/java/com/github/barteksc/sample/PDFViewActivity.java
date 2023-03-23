@@ -312,8 +312,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
 
     @Override
-    public void onPageScrolledEnd() {
-        Log.d("TESTE", "onPageScrolledEnd");
+    public void onPageScrolledEnd(float zoom) {
+        Log.d("TESTE", String.format("onPageScrolledEnd: %f", zoom));
     }
 
 

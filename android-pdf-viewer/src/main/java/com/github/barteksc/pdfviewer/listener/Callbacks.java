@@ -163,9 +163,9 @@ public class Callbacks {
         }
     }
 
-    public void callOnPageScrollEnds() {
+    public void callOnPageScrollEnds(float zoom) {
         if (onPageScrollListener != null) {
-            onPageScrollListener.onPageScrolledEnd();
+            onPageScrollListener.onPageScrolledEnd(zoom);
         }
     }
 

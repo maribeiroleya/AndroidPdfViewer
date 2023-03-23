@@ -872,13 +872,11 @@ public class PDFView extends RelativeLayout {
         double relation = Math.sqrt(pdfFile.getPageSize(0).getWidth() * pdfFile.getPageSize(0).getHeight());
         relation = relation / 1100;
 
-        Log.d("TESTE relation", String.format("%f", relation));
-
         Canvas canvas = new Canvas();
         canvas.setBitmap(bitmap);
-        /*int y = 0;
+        //int y = 0;
         for(TextLine line : note.getLines()) {
-            TextPaint textPaint  = new TextPaint();
+            /*TextPaint textPaint  = new TextPaint();
             textPaint.setTextAlign(Paint.Align.LEFT);
             textPaint.setColor(parseColor(line.getFontColor()));
             if(!line.getFontColor().equals("transparent")) {
@@ -890,38 +888,29 @@ public class PDFView extends RelativeLayout {
                 textPaint.setLetterSpacing(line.getLetterSpace());
 
             }
-            y = y + (int)(lineHeight - lineHeight*0.15);
+            y = y + (int)(lineHeight - lineHeight*0.15);*/
             //canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
-        }*/
+            TextPaint textPaint  = new TextPaint();
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            textPaint.setColor(parseColor(line.getFontColor()));
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint.setAlpha(line.getFontAlpha());
+            }
+            int lineHeight = (int)(line.getFontSize() * relation);
+            textPaint.setTextSize(toCurrentScale(lineHeight));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+                textPaint.setLetterSpacing(line.getLetterSpace());
+            }
 
-        TextLine line = note.getLines().get(0);
-        TextPaint textPaint  = new TextPaint();
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        textPaint.setColor(parseColor(line.getFontColor()));
-        if(!line.getFontColor().equals("transparent")) {
-            textPaint.setAlpha(line.getFontAlpha());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                StaticLayout teste = StaticLayout.Builder
+                        .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
+                        .setLineSpacing(0, 0.75f)
+                        .build();
+                canvas.translate(0, toCurrentScale(-10));
+                teste.draw(canvas);
+            }
         }
-        int lineHeight = (int)(line.getFontSize() * relation);
-        textPaint.setTextSize(toCurrentScale(lineHeight));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
-            textPaint.setLetterSpacing(line.getLetterSpace());
-
-        }
-
-        //TextPaint
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            StaticLayout teste = StaticLayout.Builder
-                    .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
-                    .setLineSpacing(0, 0.75f)
-                    .build();
-            canvas.translate(0, toCurrentScale(-10));
-            teste.draw(canvas);
-
-        }
-
-
         return bitmap;
     }
 

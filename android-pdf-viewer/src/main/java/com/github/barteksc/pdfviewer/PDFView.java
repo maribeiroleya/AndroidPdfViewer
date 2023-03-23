@@ -1085,7 +1085,8 @@ public class PDFView extends RelativeLayout {
     }
 
 
-    public void moveEnds() {
+    public void moveEnds(int i) {
+        Log.d("TESTE CALLBACK", String.format("DE: %d", i));
         callbacks.callOnPageScrollEnds(zoom);
     }
 

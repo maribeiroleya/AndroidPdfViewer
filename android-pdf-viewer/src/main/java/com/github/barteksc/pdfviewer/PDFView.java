@@ -876,20 +876,22 @@ public class PDFView extends RelativeLayout {
         canvas.setBitmap(bitmap);
         //int y = 0;
         for(TextLine line : note.getLines()) {
-            /*TextPaint textPaint  = new TextPaint();
-            textPaint.setTextAlign(Paint.Align.LEFT);
-            textPaint.setColor(parseColor(line.getFontColor()));
+            /*TextPaint textPaint1  = new TextPaint();
+            textPaint1.setTextAlign(Paint.Align.LEFT);
+            textPaint1.setColor(parseColor(line.getFontColor()));
             if(!line.getFontColor().equals("transparent")) {
-                textPaint.setAlpha(line.getFontAlpha());
+                textPaint1.setAlpha(line.getFontAlpha());
             }
-            int lineHeight = (int)(line.getFontSize() * relation);
-            textPaint.setTextSize(toCurrentScale(lineHeight));
+            int lineHeight1 = (int)(line.getFontSize() * relation);
+            textPaint1.setTextSize(toCurrentScale(lineHeight1));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
-                textPaint.setLetterSpacing(line.getLetterSpace());
+                textPaint1.setLetterSpacing(line.getLetterSpace());
 
             }
-            y = y + (int)(lineHeight - lineHeight*0.15);*/
-            //canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
+            y = y + (int)(lineHeight1 - lineHeight1*0.15);
+            canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint1);*/
+
+
             TextPaint textPaint  = new TextPaint();
             textPaint.setTextAlign(Paint.Align.LEFT);
             textPaint.setColor(parseColor(line.getFontColor()));
@@ -907,7 +909,7 @@ public class PDFView extends RelativeLayout {
                         .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
                         .setLineSpacing(0, 0.75f)
                         .build();
-                canvas.translate(0, toCurrentScale(-10));
+                canvas.translate(0, toCurrentScale(-0.2f*lineHeight));
                 teste.draw(canvas);
             }
         }

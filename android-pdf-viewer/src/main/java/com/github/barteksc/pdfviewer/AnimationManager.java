@@ -143,7 +143,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds(3);
         }
 
         @Override
@@ -151,7 +150,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds(4);
         }
     }
 
@@ -169,7 +167,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds(5);
         }
 
         @Override
@@ -177,7 +174,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds(6);
         }
     }
 
@@ -208,7 +204,6 @@ class AnimationManager {
             pdfView.loadPages();
             pdfView.performPageSnap();
             hideHandle();
-            pdfView.moveEnds(7);
         }
 
         @Override

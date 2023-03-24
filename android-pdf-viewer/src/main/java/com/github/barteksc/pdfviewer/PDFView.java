@@ -895,6 +895,8 @@ public class PDFView extends RelativeLayout {
             TextPaint textPaint  = new TextPaint();
             textPaint.setTextAlign(Paint.Align.LEFT);
             textPaint.setColor(parseColor(line.getFontColor()));
+            textPaint.setAntiAlias(true);
+            textPaint.setSubpixelText(true);
             if(!line.getFontColor().equals("transparent")) {
                 textPaint.setAlpha(line.getFontAlpha());
             }

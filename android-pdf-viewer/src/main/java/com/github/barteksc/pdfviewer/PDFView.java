@@ -724,8 +724,28 @@ public class PDFView extends RelativeLayout {
         for (TextNote textNote : this.textNotes) {
             Double xPercent = textNote.getXpos() / 100;
             Double yPercent = textNote.getYpos() / 100;
-            Double widthPercent = (textNote.getWidth() + 2.5) / 100;
-            Double heightPercent = (textNote.getHeight() + 1.5) / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+
+            Double widthPercent = (textNote.getWidth()) / 100;
+            Double heightPercent = (textNote.getHeight()) / 100;
+
+            Double width = pdfFile.getPageSize(0).getWidth() * widthPercent;
+            Double paddingLeft = width*(2.5/100)*2;
+            Double height = pdfFile.getPageSize(0).getHeight() * heightPercent;
+            Double paddingTop = width*(1.5/100)*2;
+
+
+            /*Double left = pdfFile.getPageSize(0).getWidth() * widthPercent*(2.5/100);
+            Double top = pdfFile.getPageSize(0).getHeight()  * heightPercent*(1.5/100);
+
+            widthPercent = widthPercent + widthPercent*(2.5/100);
+            heightPercent = heightPercent + heightPercent*(1.5/100);
+
+
+            //Double widthPercent = (textNote.getWidth() + 2.5) / 100;
+            //Double heightPercent = (textNote.getHeight() + 1.5) / 100;
 
             Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
             Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
@@ -733,13 +753,13 @@ public class PDFView extends RelativeLayout {
 
 
             Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
-            Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
+            //Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
             //widthDouble = widthDouble + left*2;
             Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
-            Double top = pdfFile.getPageSize(0).getHeight() * 0.015/2;
+            //Double top = pdfFile.getPageSize(0).getHeight() * 0.015/2;
             //heightDouble = heightDouble + pdfFile.getPageSize(0).getHeight() * 0.03;
-            float width = toCurrentScale(widthDouble.floatValue() + x.floatValue());
-            float height = toCurrentScale(heightDouble.floatValue() + y.floatValue());
+            float width = toCurrentScale(widthDouble.floatValue() + x.floatValue() + left.floatValue() + left.floatValue());
+            float height = toCurrentScale(heightDouble.floatValue() + y.floatValue() + top.floatValue() + top.floatValue());*/
 
             Paint paintBackground = new Paint();
             paintBackground.setColor(parseColor(textNote.getBackgroundColor()));
@@ -756,19 +776,36 @@ public class PDFView extends RelativeLayout {
             strokePaint.setStrokeWidth(textNote.getBorderSize());
 
 
+            //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
+
+
+            Rect backGroundRect = new Rect(
+                    (int) toCurrentScale(x.floatValue()),
+                    (int) toCurrentScale(y.floatValue()),
+                    (int) toCurrentScale(x.floatValue() + width.floatValue() + paddingLeft.floatValue()) + 2*textNote.getBorderSize(),
+                    (int) toCurrentScale(y.floatValue() + height.floatValue() + paddingTop.floatValue()) + 2*textNote.getBorderSize());
+            canvas.drawRect(backGroundRect, paintBackground);
+
+            Rect borderRect = new Rect(
+                    (int) toCurrentScale(x.floatValue()) + textNote.getBorderSize()/2,
+                    (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize()/2,
+                    (int) toCurrentScale(x.floatValue() + width.floatValue() + paddingLeft.floatValue()) + textNote.getBorderSize() + textNote.getBorderSize()/2 ,
+                    (int) toCurrentScale(y.floatValue() + height.floatValue() + paddingTop.floatValue()) + textNote.getBorderSize() + textNote.getBorderSize()/2);
+            canvas.drawRect(borderRect, strokePaint);
+
+
+            /*
             //Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width + textNote.getBorderSize() * 2), (int) (height + textNote.getBorderSize() * 2));
             Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width), (int) (height));
             //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2, (int) height + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2);
             Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
             canvas.drawRect(testBorder, strokePaint);
             canvas.drawRect(testRect, paintBackground);
+*/
 
-
-            Rect testRect2 = new Rect(testRect.left + (int)toCurrentScale(left.floatValue()), testRect.top + (int)toCurrentScale(top.floatValue()), testRect.right - (int)toCurrentScale(left.floatValue()), testRect.bottom - (int)toCurrentScale(top.floatValue()));
-
+            Rect testRect2 = new Rect(backGroundRect.left + (int)toCurrentScale(paddingLeft.floatValue()) + textNote.getBorderSize()/2, backGroundRect.top + (int)toCurrentScale(paddingTop.floatValue()) + textNote.getBorderSize()/2, backGroundRect.right - (int)toCurrentScale(paddingLeft.floatValue()) - textNote.getBorderSize()/2, backGroundRect.bottom - (int)toCurrentScale(paddingTop.floatValue())- textNote.getBorderSize()/2);
             Bitmap b = getBitMapForTextNote(testRect2.right-testRect2.left, testRect2.bottom-testRect2.top, textNote);
             Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
-
             canvas.drawBitmap(b, srcRect, testRect2, null);
         }
 
@@ -911,7 +948,7 @@ public class PDFView extends RelativeLayout {
                         .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
                         .setLineSpacing(0, 0.75f)
                         .build();
-                canvas.translate(0, toCurrentScale(-0.2f*lineHeight));
+                canvas.translate(toCurrentScale((int)-0.5*getResources().getDisplayMetrics().density), toCurrentScale(-0.3f*lineHeight));
                 teste.draw(canvas);
             }
         }

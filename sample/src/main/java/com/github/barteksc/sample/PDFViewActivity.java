@@ -68,7 +68,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private final static int REQUEST_CODE = 42;
     public static final int PERMISSION_CODE = 42042;
 
-    public static final String SAMPLE_FILE = "1.pdf";
+    public static final String SAMPLE_FILE = "21.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @ViewById
@@ -140,7 +140,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
 
         List<Note> notes = new ArrayList<>();
-        notes.add(new Note(50, 50, "red"));
+        //notes.add(new Note(50, 50, "red"));
         /*notes.add(new Note(10, 10, "blue"));
         notes.add(new Note(40, 50, "red"));
         notes.add(new Note(0, 10, "blue"));
@@ -155,22 +155,27 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
 
         List<TextNote> textNotes = new ArrayList<>();
-        List<TextLine> lines = new ArrayList<>();
-        TextLine line = new TextLine(45, "#E25185", 0.43f, "Texto numero 1\nOutra linha");
+        //List<TextLine> lines = new ArrayList<>();
+        //TextLine line = new TextLine(45, "#E25185", 0.43f, "Texto numero 1\nOutra linha");
         //TextLine line2 = new TextLine(45, "#E25185", 0.43f, "Outra linha");
-        lines.add(line);
+        //lines.add(line);
         //lines.add(line2);
-        TextNote textNote = new TextNote(50.9, 86.7, 40.4, 5.5, "#FAE32D", 0.28f, "#A551A5",10, 0.67f, lines);
+        //TextNote textNote = new TextNote(50.9, 86.7, 40.4, 5.5, "#FAE32D", 0.28f, "#A551A5",10, 0.67f, lines);
 
 
 
 
         List<TextLine> lines1 = new ArrayList<>();
-        TextLine line3 = new TextLine(128, "#000000", 1.0f, "Teste texto");
-        lines1.add(line3);
-        TextNote textNote1 = new TextNote(8.4, 2, 73.7, 33.1, "transparent", 1.0f, "#000000",10, 1.0f, lines1);
-        textNotes.add(textNote);
+        TextLine line1 = new TextLine(24, "#000000", 1.0f, "Practice");
+        lines1.add(line1);
+        TextNote textNote1 = new TextNote(76.58132030558352, 56.71656202823219, 10.227475093577894, 2.391138281472756, "#FE7F00", 1.0f, "#000000",1, 1.0f, lines1);
         textNotes.add(textNote1);
+
+        List<TextLine> lines2 = new ArrayList<>();
+        TextLine line2 = new TextLine(84, "#000000", 1.0f, "Practice");
+        lines2.add(line2);
+        TextNote textNote2 = new TextNote(35.3, 15.5, 36.4, 12.4, "#FE7F00", 1.0f, "#000000",10, 0.5f, lines2);
+        textNotes.add(textNote2);
 
 
         pdfView.setMinZoom(1);
@@ -198,6 +203,8 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         pdfView.setMaxZoom(10);
         pdfView.setMinZoom(10);
+
+        pdfView.zoomTo(20);
     }
 
     private void displayFromUri(Uri uri) {

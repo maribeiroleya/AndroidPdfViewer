@@ -741,7 +741,7 @@ public class PDFView extends RelativeLayout {
             Double width = pdfFile.getPageSize(0).getWidth() * widthPercent;
             Double paddingLeft = width*(2.5/100)*2;
             Double height = pdfFile.getPageSize(0).getHeight() * heightPercent;
-            Double paddingTop = width*(1.5/100)*2;
+            Double paddingTop = height*(1.5/100)*2;
 
 
             /*Double left = pdfFile.getPageSize(0).getWidth() * widthPercent*(2.5/100);
@@ -955,7 +955,7 @@ public class PDFView extends RelativeLayout {
                         .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
                         .setLineSpacing(0, 0.75f)
                         .build();
-                canvas.translate(toCurrentScale((int)-0.5*getResources().getDisplayMetrics().density), toCurrentScale(-0.3f*lineHeight));
+                canvas.translate(toCurrentScale((int)-0.5*getResources().getDisplayMetrics().density), toCurrentScale(-0.2f*lineHeight));
                 teste.draw(canvas);
             }
         }

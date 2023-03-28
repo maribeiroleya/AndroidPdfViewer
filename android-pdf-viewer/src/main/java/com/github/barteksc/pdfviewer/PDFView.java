@@ -196,6 +196,8 @@ public class PDFView extends RelativeLayout {
 
     private boolean enableSwipe = true;
 
+    private boolean enableMovement = true;
+
     private List<Hotspot> hotspots = new ArrayList<>();
     private List<Note> notes = new ArrayList<>();
     private List<TextNote> textNotes = new ArrayList<>();
@@ -413,6 +415,11 @@ public class PDFView extends RelativeLayout {
 
     public void setNotes(List<Note> notes) {
         this.notes = notes;
+    }
+
+
+    public void enableMovement(boolean enableMovement) {
+        this.enableMovement = enableMovement;
     }
 
 
@@ -1142,83 +1149,85 @@ public class PDFView extends RelativeLayout {
      * @param moveHandle whether to move scroll handle or not
      */
     public void moveTo(float offsetX, float offsetY, boolean moveHandle) {
-        if (swipeVertical) {
-            // Check X offset
-            float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
-            if (scaledPageWidth < getWidth()) {
-                offsetX = getWidth() / 2 - scaledPageWidth / 2;
+        if(this.enableMovement) {
+            if (swipeVertical) {
+                // Check X offset
+                float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
+                if (scaledPageWidth < getWidth()) {
+                    offsetX = getWidth() / 2 - scaledPageWidth / 2;
+                } else {
+                    if (offsetX > 0) {
+                        offsetX = 0;
+                    } else if (offsetX + scaledPageWidth < getWidth()) {
+                        offsetX = getWidth() - scaledPageWidth;
+                    }
+                }
+
+                // Check Y offset
+                float contentHeight = pdfFile.getDocLen(zoom);
+                if (contentHeight < getHeight()) { // whole document height visible on screen
+                    offsetY = (getHeight() - contentHeight) / 2;
+                } else {
+                    if (offsetY > 0) { // top visible
+                        offsetY = 0;
+                    } else if (offsetY + contentHeight < getHeight()) { // bottom visible
+                        offsetY = -contentHeight + getHeight();
+                    }
+                }
+
+                if (offsetY < currentYOffset) {
+                    scrollDir = ScrollDir.END;
+                } else if (offsetY > currentYOffset) {
+                    scrollDir = ScrollDir.START;
+                } else {
+                    scrollDir = ScrollDir.NONE;
+                }
             } else {
-                if (offsetX > 0) {
-                    offsetX = 0;
-                } else if (offsetX + scaledPageWidth < getWidth()) {
-                    offsetX = getWidth() - scaledPageWidth;
+                // Check Y offset
+                float scaledPageHeight = toCurrentScale(pdfFile.getMaxPageHeight());
+                if (scaledPageHeight < getHeight()) {
+                    offsetY = getHeight() / 2 - scaledPageHeight / 2;
+                } else {
+                    if (offsetY > 0) {
+                        offsetY = 0;
+                    } else if (offsetY + scaledPageHeight < getHeight()) {
+                        offsetY = getHeight() - scaledPageHeight;
+                    }
+                }
+
+                // Check X offset
+                float contentWidth = pdfFile.getDocLen(zoom);
+                if (contentWidth < getWidth()) { // whole document width visible on screen
+                    offsetX = (getWidth() - contentWidth) / 2;
+                } else {
+                    if (offsetX > 0) { // left visible
+                        offsetX = 0;
+                    } else if (offsetX + contentWidth < getWidth()) { // right visible
+                        offsetX = -contentWidth + getWidth();
+                    }
+                }
+
+                if (offsetX < currentXOffset) {
+                    scrollDir = ScrollDir.END;
+                } else if (offsetX > currentXOffset) {
+                    scrollDir = ScrollDir.START;
+                } else {
+                    scrollDir = ScrollDir.NONE;
                 }
             }
 
-            // Check Y offset
-            float contentHeight = pdfFile.getDocLen(zoom);
-            if (contentHeight < getHeight()) { // whole document height visible on screen
-                offsetY = (getHeight() - contentHeight) / 2;
-            } else {
-                if (offsetY > 0) { // top visible
-                    offsetY = 0;
-                } else if (offsetY + contentHeight < getHeight()) { // bottom visible
-                    offsetY = -contentHeight + getHeight();
-                }
+            currentXOffset = offsetX;
+            currentYOffset = offsetY;
+            float positionOffset = getPositionOffset();
+
+            if (moveHandle && scrollHandle != null && !documentFitsView()) {
+                scrollHandle.setScroll(positionOffset);
             }
 
-            if (offsetY < currentYOffset) {
-                scrollDir = ScrollDir.END;
-            } else if (offsetY > currentYOffset) {
-                scrollDir = ScrollDir.START;
-            } else {
-                scrollDir = ScrollDir.NONE;
-            }
-        } else {
-            // Check Y offset
-            float scaledPageHeight = toCurrentScale(pdfFile.getMaxPageHeight());
-            if (scaledPageHeight < getHeight()) {
-                offsetY = getHeight() / 2 - scaledPageHeight / 2;
-            } else {
-                if (offsetY > 0) {
-                    offsetY = 0;
-                } else if (offsetY + scaledPageHeight < getHeight()) {
-                    offsetY = getHeight() - scaledPageHeight;
-                }
-            }
+            callbacks.callOnPageScroll(getCurrentPage(), positionOffset);
 
-            // Check X offset
-            float contentWidth = pdfFile.getDocLen(zoom);
-            if (contentWidth < getWidth()) { // whole document width visible on screen
-                offsetX = (getWidth() - contentWidth) / 2;
-            } else {
-                if (offsetX > 0) { // left visible
-                    offsetX = 0;
-                } else if (offsetX + contentWidth < getWidth()) { // right visible
-                    offsetX = -contentWidth + getWidth();
-                }
-            }
-
-            if (offsetX < currentXOffset) {
-                scrollDir = ScrollDir.END;
-            } else if (offsetX > currentXOffset) {
-                scrollDir = ScrollDir.START;
-            } else {
-                scrollDir = ScrollDir.NONE;
-            }
+            redraw();
         }
-
-        currentXOffset = offsetX;
-        currentYOffset = offsetY;
-        float positionOffset = getPositionOffset();
-
-        if (moveHandle && scrollHandle != null && !documentFitsView()) {
-            scrollHandle.setScroll(positionOffset);
-        }
-
-        callbacks.callOnPageScroll(getCurrentPage(), positionOffset);
-
-        redraw();
     }
 
     void loadPageByOffset() {
@@ -1348,7 +1357,9 @@ public class PDFView extends RelativeLayout {
      * Change the zoom level
      */
     public void zoomTo(float zoom) {
-        this.zoom = zoom;
+        if(this.enableMovement) {
+            this.zoom = zoom;
+        }
     }
 
 

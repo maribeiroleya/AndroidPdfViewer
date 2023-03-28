@@ -918,6 +918,7 @@ public class PDFView extends RelativeLayout {
 
         Canvas canvas = new Canvas();
         canvas.setBitmap(bitmap);
+        canvas.drawColor(Color.BLUE);
         //int y = 0;
         for(TextLine line : note.getLines()) {
             /*TextPaint textPaint1  = new TextPaint();

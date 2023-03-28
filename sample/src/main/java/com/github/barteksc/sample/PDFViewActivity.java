@@ -272,9 +272,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         Size pageSize = pdfView.getOriginalPageSize(0);
 
-        Log.d("WIDTH", String.format("%d", pageSize.getWidth()));
-        Log.d("HEIGHT", String.format("%d", pageSize.getHeight()));
-
         //pdfView.zoomTo(10);
     }
 

@@ -1150,7 +1150,7 @@ public class PDFView extends RelativeLayout {
      * @param moveHandle whether to move scroll handle or not
      */
     public void moveTo(float offsetX, float offsetY, boolean moveHandle) {
-        if(this.enableMovement) {
+        if(this.enableMovement && pdfFile != null) {
             if (swipeVertical) {
                 // Check X offset
                 float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());

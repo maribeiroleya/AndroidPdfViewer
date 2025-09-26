@@ -17,7 +17,7 @@ package com.github.barteksc.pdfviewer;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.Log;
+import android.util.SizeF;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -26,8 +26,7 @@ import android.view.View;
 import com.github.barteksc.pdfviewer.model.LinkTapEvent;
 import com.github.barteksc.pdfviewer.scroll.ScrollHandle;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.util.SizeF;
+import io.legere.pdfiumandroid.PdfDocument;
 
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MAXIMUM_ZOOM;
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MINIMUM_ZOOM;
@@ -45,7 +44,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private ScaleGestureDetector scaleGestureDetector;
 
     private boolean scrolling = false;
-    public boolean scaling = false;
+    private boolean scaling = false;
     private boolean enabled = false;
 
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
@@ -193,7 +192,6 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         if (!animationManager.isFlinging()) {
             pdfView.performPageSnap();
         }
-        pdfView.zoomEnd();
     }
 
     @Override
@@ -284,7 +282,6 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         pdfView.loadPages();
         hideHandle();
         scaling = false;
-        pdfView.zoomEnd();
     }
 
     @Override

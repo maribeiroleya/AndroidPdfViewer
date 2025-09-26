@@ -21,7 +21,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.graphics.PointF;
-import android.util.Log;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.OverScroller;
 
@@ -85,7 +84,6 @@ class AnimationManager {
     public void startFlingAnimation(int startX, int startY, int velocityX, int velocityY, int minX, int maxX, int minY, int maxY) {
         stopAll();
         flinging = true;
-        pdfView.swipeChangePage(velocityX);
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
     }
 
@@ -107,7 +105,6 @@ class AnimationManager {
             pdfView.loadPages();
             hideHandle();
             pdfView.performPageSnap();
-            pdfView.moveEnds();
         }
     }
 
@@ -122,7 +119,6 @@ class AnimationManager {
     public void stopFling() {
         flinging = false;
         scroller.forceFinished(true);
-        pdfView.moveEnds();
     }
 
     public boolean isFlinging() {
@@ -143,7 +139,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds();
         }
 
         @Override
@@ -151,7 +146,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds();
         }
     }
 
@@ -169,7 +163,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds();
         }
 
         @Override
@@ -177,7 +170,6 @@ class AnimationManager {
             pdfView.loadPages();
             pageFlinging = false;
             hideHandle();
-            pdfView.moveEnds();
         }
     }
 
@@ -208,7 +200,6 @@ class AnimationManager {
             pdfView.loadPages();
             pdfView.performPageSnap();
             hideHandle();
-            pdfView.moveEnds();
         }
 
         @Override

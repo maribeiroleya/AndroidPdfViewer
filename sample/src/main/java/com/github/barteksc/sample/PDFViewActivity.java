@@ -18,50 +18,41 @@ package com.github.barteksc.sample;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.icu.text.LocaleDisplayNames;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.github.barteksc.pdfviewer.PDFView;
-import com.github.barteksc.pdfviewer.listener.OnActionEnd;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
-import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
-import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.Note;
 import com.github.barteksc.pdfviewer.util.TextLine;
 import com.github.barteksc.pdfviewer.util.TextNote;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.util.Size;
-import com.shockwave.pdfium.util.SizeF;
 
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.NonConfigurationInstance;
-import org.androidannotations.annotations.OnActivityResult;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.ViewById;
+import io.legere.pdfiumandroid.PdfDocument;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EActivity(R.layout.activity_main)
-@OptionsMenu(R.menu.options)
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
-        OnPageErrorListener, OnActionEnd, OnPageScrollListener {
+        OnPageErrorListener {
 
     private static final String TAG = PDFViewActivity.class.getSimpleName();
 
@@ -71,18 +62,45 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public static final String SAMPLE_FILE = "21.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
-    @ViewById
-    PDFView pdfView;
+    private PDFView pdfView;
 
-    @NonConfigurationInstance
-    Uri uri;
+    private Uri uri;
 
-    @NonConfigurationInstance
-    Integer pageNumber = 0;
+    private Integer pageNumber = 0;
 
-    String pdfFileName;
+    private String pdfFileName;
 
-    @OptionsItem(R.id.pickFile)
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        initViews();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.pickFile) {
+            pickFile();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void initViews() {
+        pdfView = findViewById(R.id.pdfView);
+
+        afterViews();
+    }
+
     void pickFile() {
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 READ_EXTERNAL_STORAGE);
@@ -111,7 +129,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
     }
 
-    @AfterViews
     void afterViews() {
         pdfView.setBackgroundColor(Color.LTGRAY);
         if (uri != null) {
@@ -125,7 +142,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromAsset(String assetFileName) {
 
         List<Hotspot> hotspots = new ArrayList<>();
-        /*hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
+        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
         hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679, "game"));
         hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506, "default"));
         hotspots.add(new Hotspot(0.0, 95.37037037037037, "activity"));
@@ -136,12 +153,11 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         hotspots.add(new Hotspot(17.661290322580645, 18.333333333333332, "document"));
         hotspots.add(new Hotspot(17.661290322580645, 28.333333333333332, "image"));
         hotspots.add(new Hotspot(27.661290322580645, 28.333333333333332, "link"));
-        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));*/
-
+        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));
 
         List<Note> notes = new ArrayList<>();
-        //notes.add(new Note(50, 50, "red"));
-        /*notes.add(new Note(10, 10, "blue"));
+        notes.add(new Note(50, 50, "red"));
+        notes.add(new Note(10, 10, "blue"));
         notes.add(new Note(40, 50, "red"));
         notes.add(new Note(0, 10, "blue"));
         notes.add(new Note(30, 50, "red"));
@@ -151,20 +167,10 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         notes.add(new Note(60, 50, "red"));
         notes.add(new Note(80, 10, "blue"));
         notes.add(new Note(45, 50, "red"));
-        notes.add(new Note(10, 10, "blue"));*/
+        notes.add(new Note(10, 10, "blue"));
 
 
         List<TextNote> textNotes = new ArrayList<>();
-        //List<TextLine> lines = new ArrayList<>();
-        //TextLine line = new TextLine(45, "#E25185", 0.43f, "Texto numero 1\nOutra linha");
-        //TextLine line2 = new TextLine(45, "#E25185", 0.43f, "Outra linha");
-        //lines.add(line);
-        //lines.add(line2);
-        //TextNote textNote = new TextNote(50.9, 86.7, 40.4, 5.5, "#FAE32D", 0.28f, "#A551A5",10, 0.67f, lines);
-
-
-
-
         List<TextLine> lines1 = new ArrayList<>();
         TextLine line1 = new TextLine(24, "#000000", 1.0f, "Practice");
         lines1.add(line1);
@@ -177,34 +183,30 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         TextNote textNote2 = new TextNote(35.3, 15.5, 36.4, 12.4, "#FE7F00", 1.0f, "#000000",10, 0.5f, lines2);
         textNotes.add(textNote2);
 
-
-        pdfView.setMinZoom(1);
-        pdfView.setMaxZoom(10);
-        pdfView.setMidZoom(5);
-        Constants.Pinch.MINIMUM_ZOOM = 1;
-        Constants.Pinch.MAXIMUM_ZOOM = 10;
+        boolean isLandscape = false;
+        int orientation = this.getResources().getConfiguration().orientation;
+        isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE;
+        pdfFileName = assetFileName;
 
         pdfView.fromAsset(SAMPLE_FILE)
-                .swipeHorizontal(true)
                 .withHotspots(hotspots)
                 .withNotes(notes)
                 .withTextNotes(textNotes)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
-                .onPageScroll(this)
-                .onActionEnd(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
+                .landscapeOrientation(isLandscape)
+                .dualPageMode(false)
                 .scrollHandle(new DefaultScrollHandle(this))
-                .spacing(10) // in dp
+                .spacing(0) // in dp
+                .enableSwipe(true)
+                .swipeHorizontal(true)
+                .pageFling(true)
+                .fitEachPage(false)
                 .onPageError(this)
                 .pageFitPolicy(FitPolicy.BOTH)
                 .load();
-
-        pdfView.setMaxZoom(10);
-        pdfView.setMinZoom(10);
-
-        pdfView.zoomTo(20);
     }
 
     private void displayFromUri(Uri uri) {
@@ -216,12 +218,22 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .enableAnnotationRendering(true)
                 .onLoad(this)
                 .scrollHandle(new DefaultScrollHandle(this))
-                .spacing(10) // in dp
+                .spacing(0) // in dp
+                .dualPageMode(true)
+                .enableSwipe(true)
+                .swipeHorizontal(true)
+                .pageFling(true)
                 .onPageError(this)
                 .load();
     }
 
-    @OnActivityResult(REQUEST_CODE)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        onResult(resultCode, data);
+    }
+
     public void onResult(int resultCode, Intent intent) {
         if (resultCode == RESULT_OK) {
             uri = intent.getData();
@@ -238,14 +250,13 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-            try {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                }
-            } finally {
-                if (cursor != null) {
-                    cursor.close();
+                    int columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+
+                    if (columnIndex >= 0) {
+                        result = cursor.getString(columnIndex);
+                    }
                 }
             }
         }
@@ -269,10 +280,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
         printBookmarksTree(pdfView.getTableOfContents(), "-");
 
-
-        Size pageSize = pdfView.getOriginalPageSize(0);
-
-        //pdfView.zoomTo(10);
     }
 
     public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {
@@ -280,7 +287,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
             Log.e(TAG, String.format("%s %s, p %d", sep, b.getTitle(), b.getPageIdx()));
 
-            if (b.hasChildren()) {
+            if (!b.getChildren().isEmpty()) {
                 printBookmarksTree(b.getChildren(), sep + "-");
             }
         }
@@ -294,8 +301,9 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
      * @param grantResults Whether permissions granted
      */
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_CODE) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -307,22 +315,5 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     @Override
     public void onPageError(int page, Throwable t) {
         Log.e(TAG, "Cannot load page " + page);
-    }
-
-    @Override
-    public void actionEnd() {
-        Log.d("TESTE", "END");
-    }
-
-
-    @Override
-    public void onPageScrolledEnd(float zoom) {
-        Log.d("TESTE", String.format("onPageScrolledEnd: %f", zoom));
-    }
-
-
-    @Override
-    public void onPageScrolled(int page, float positionOffset) {
-        //Log.d("TESTE", "onPageScrolled");
     }
 }

@@ -18,16 +18,15 @@ package com.github.barteksc.pdfviewer;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.util.Log;
+import android.util.SizeF;
 import android.util.SparseBooleanArray;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.PageSizeCalculator;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
-import com.shockwave.pdfium.util.Size;
-import com.shockwave.pdfium.util.SizeF;
+import io.legere.pdfiumandroid.PdfDocument;
+import io.legere.pdfiumandroid.PdfiumCore;
+import io.legere.pdfiumandroid.util.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +51,8 @@ class PdfFile {
     private SizeF maxHeightPageSize = new SizeF(0, 0);
     /** Scaled page with maximum width */
     private SizeF maxWidthPageSize = new SizeF(0, 0);
+    /** True if dualPageMode is on*/
+    private boolean showTwoPages;
     /** True if scrolling is vertical, else it's horizontal */
     private boolean isVertical;
     /** Fixed spacing between pages in pixels */
@@ -70,6 +71,8 @@ class PdfFile {
      * else the largest page fits and other pages scale relatively
      */
     private final boolean fitEachPage;
+
+    private final boolean isLandscape;
     /**
      * The pages the user want to display in order
      * (ex: 0, 2, 2, 8, 8, 1, 1, 1)
@@ -77,7 +80,8 @@ class PdfFile {
     private int[] originalUserPages;
 
     PdfFile(PdfiumCore pdfiumCore, PdfDocument pdfDocument, FitPolicy pageFitPolicy, Size viewSize, int[] originalUserPages,
-            boolean isVertical, int spacing, boolean autoSpacing, boolean fitEachPage) {
+            boolean showTwoPages, boolean isVertical, int spacing, boolean autoSpacing, boolean fitEachPage, boolean isLandscape) {
+        this.showTwoPages = showTwoPages;
         this.pdfiumCore = pdfiumCore;
         this.pdfDocument = pdfDocument;
         this.pageFitPolicy = pageFitPolicy;
@@ -86,6 +90,7 @@ class PdfFile {
         this.spacingPx = spacing;
         this.autoSpacing = autoSpacing;
         this.fitEachPage = fitEachPage;
+        this.isLandscape = isLandscape;
         setup(viewSize);
     }
 
@@ -93,7 +98,7 @@ class PdfFile {
         if (originalUserPages != null) {
             pagesCount = originalUserPages.length;
         } else {
-            pagesCount = pdfiumCore.getPageCount(pdfDocument);
+            pagesCount = pdfDocument.getPageCount();
         }
 
         for (int i = 0; i < pagesCount; i++) {
@@ -123,7 +128,7 @@ class PdfFile {
         maxHeightPageSize = calculator.getOptimalMaxHeightPageSize();
 
         for (Size size : originalPageSizes) {
-            pageSizes.add(calculator.calculate(size));
+            pageSizes.add(calculator.calculate(size, showTwoPages, isLandscape));
         }
         if (autoSpacing) {
             prepareAutoSpacing(viewSize);
@@ -144,7 +149,6 @@ class PdfFile {
         return pageSizes.get(pageIndex);
     }
 
-
     public Size getOriginalPageSize(int pageIndex) {
         int docPage = documentPage(pageIndex);
         if (docPage < 0) {
@@ -152,7 +156,6 @@ class PdfFile {
         }
         return pdfiumCore.getPageSize(pdfDocument, documentPage(0));
     }
-
 
     public SizeF getScaledPageSize(int pageIndex, float zoom) {
         SizeF size = getPageSize(pageIndex);
@@ -314,12 +317,6 @@ class PdfFile {
         return pdfiumCore.getDocumentMeta(pdfDocument);
     }
 
-
-    public float getPageWidth() {
-        return pdfiumCore.getPageWidth(pdfDocument, 0);
-    }
-
-
     public List<PdfDocument.Bookmark> getBookmarks() {
         if (pdfDocument == null) {
             return new ArrayList<>();
@@ -335,7 +332,7 @@ class PdfFile {
     public RectF mapRectToDevice(int pageIndex, int startX, int startY, int sizeX, int sizeY,
                                  RectF rect) {
         int docPage = documentPage(pageIndex);
-        return pdfiumCore.mapRectToDevice(pdfDocument, docPage, startX, startY, sizeX, sizeY, 0, rect);
+        return new RectF(pdfDocument.openPage(docPage).mapRectToDevice(startX, startY, sizeX, sizeY, 0, rect));
     }
 
     public void dispose() {

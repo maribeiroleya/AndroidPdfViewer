@@ -15,7 +15,6 @@
  */
 package com.github.barteksc.pdfviewer.listener;
 
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.github.barteksc.pdfviewer.link.LinkHandler;
@@ -47,14 +46,6 @@ public class Callbacks {
      * Call back object to call when the page has changed
      */
     private OnPageChangeListener onPageChangeListener;
-
-
-    private OnActionEnd onActionEnd;
-
-    /**
-     * Call back object to call when the page has changed
-     */
-    private OnPageSwipeChangeListener onPageSwipeChangeListener;
 
     /**
      * Call back object to call when the page is scrolled
@@ -127,29 +118,9 @@ public class Callbacks {
         this.onPageChangeListener = onPageChangeListener;
     }
 
-    public void setOnPageSwipeChange(OnPageSwipeChangeListener onPageSwipeChangeListener) {
-        this.onPageSwipeChangeListener = onPageSwipeChangeListener;
-    }
-
-    public void setOnActionEnd(OnActionEnd onActionEnd) {
-        this.onActionEnd = onActionEnd;
-    }
-
     public void callOnPageChange(int page, int pagesCount) {
         if (onPageChangeListener != null) {
             onPageChangeListener.onPageChanged(page, pagesCount);
-        }
-    }
-
-    public void callOnActionEnd() {
-        if (onActionEnd != null) {
-            onActionEnd.actionEnd();
-        }
-    }
-
-    public void callOnPageSwipeChange(int offset) {
-        if (onPageSwipeChangeListener != null) {
-            onPageSwipeChangeListener.onPageSwipeChange(offset);
         }
     }
 
@@ -160,12 +131,6 @@ public class Callbacks {
     public void callOnPageScroll(int currentPage, float offset) {
         if (onPageScrollListener != null) {
             onPageScrollListener.onPageScrolled(currentPage, offset);
-        }
-    }
-
-    public void callOnPageScrollEnds(float zoom) {
-        if (onPageScrollListener != null) {
-            onPageScrollListener.onPageScrolledEnd(zoom);
         }
     }
 

@@ -15,12 +15,13 @@
  */
 package com.github.barteksc.pdfviewer;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
 import com.github.barteksc.pdfviewer.source.DocumentSource;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
-import com.shockwave.pdfium.util.Size;
+import io.legere.pdfiumandroid.PdfDocument;
+import io.legere.pdfiumandroid.PdfiumCore;
+import io.legere.pdfiumandroid.util.Size;
 
 import java.lang.ref.WeakReference;
 
@@ -28,12 +29,12 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
 
     private boolean cancelled;
 
-    private WeakReference<PDFView> pdfViewReference;
+    private final WeakReference<PDFView> pdfViewReference;
 
-    private PdfiumCore pdfiumCore;
-    private String password;
-    private DocumentSource docSource;
-    private int[] userPages;
+    private final PdfiumCore pdfiumCore;
+    private final String password;
+    private final DocumentSource docSource;
+    private final int[] userPages;
     private PdfFile pdfFile;
 
     DecodingAsyncTask(DocumentSource docSource, String password, int[] userPages, PDFView pdfView, PdfiumCore pdfiumCore) {
@@ -45,15 +46,26 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
         this.pdfiumCore = pdfiumCore;
     }
 
+    @SuppressLint("WrongThread")
     @Override
     protected Throwable doInBackground(Void... params) {
         try {
             PDFView pdfView = pdfViewReference.get();
             if (pdfView != null) {
                 PdfDocument pdfDocument = docSource.createDocument(pdfView.getContext(), pdfiumCore, password);
-                pdfFile = new PdfFile(pdfiumCore, pdfDocument, pdfView.getPageFitPolicy(), getViewSize(pdfView),
-                        userPages, pdfView.isSwipeVertical(), pdfView.getSpacingPx(), pdfView.isAutoSpacingEnabled(),
-                        pdfView.isFitEachPage());
+                pdfFile = new PdfFile(
+                        pdfiumCore,
+                        pdfDocument,
+                        pdfView.getPageFitPolicy(),
+                        getViewSize(pdfView),
+                        userPages,
+                        pdfView.isOnDualPageMode(),
+                        pdfView.isSwipeVertical(),
+                        pdfView.getSpacingPx(),
+                        pdfView.isAutoSpacingEnabled(),
+                        pdfView.isFitEachPage(),
+                        pdfView.isOnLandscapeOrientation()
+                );
                 return null;
             } else {
                 return new NullPointerException("pdfView == null");

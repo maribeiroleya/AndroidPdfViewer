@@ -88,32 +88,29 @@ class RenderingHandler extends Handler {
 
     private PagePart proceed(RenderingTask renderingTask) throws PageRenderingException {
         PdfFile pdfFile = pdfView.pdfFile;
-        if(pdfFile != null) {
-            pdfFile.openPage(renderingTask.page);
+        pdfFile.openPage(renderingTask.page);
 
-            int w = Math.round(renderingTask.width);
-            int h = Math.round(renderingTask.height);
+        int w = Math.round(renderingTask.width);
+        int h = Math.round(renderingTask.height);
 
-            if (w == 0 || h == 0 || pdfFile.pageHasError(renderingTask.page)) {
-                return null;
-            }
-
-            Bitmap render;
-            try {
-                render = Bitmap.createBitmap(w, h, renderingTask.bestQuality ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
-            } catch (IllegalArgumentException e) {
-                Log.e(TAG, "Cannot create bitmap", e);
-                return null;
-            }
-            calculateBounds(w, h, renderingTask.bounds);
-
-            pdfFile.renderPageBitmap(render, renderingTask.page, roundedRenderBounds, renderingTask.annotationRendering);
-
-            return new PagePart(renderingTask.page, render,
-                    renderingTask.bounds, renderingTask.thumbnail,
-                    renderingTask.cacheOrder);
+        if (w == 0 || h == 0 || pdfFile.pageHasError(renderingTask.page)) {
+            return null;
         }
-        return null;
+
+        Bitmap render;
+        try {
+            render = Bitmap.createBitmap(w, h, renderingTask.bestQuality ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Cannot create bitmap", e);
+            return null;
+        }
+        calculateBounds(w, h, renderingTask.bounds);
+
+        pdfFile.renderPageBitmap(render, renderingTask.page, roundedRenderBounds, renderingTask.annotationRendering);
+
+        return new PagePart(renderingTask.page, render,
+                renderingTask.bounds, renderingTask.thumbnail,
+                renderingTask.cacheOrder);
     }
 
     private void calculateBounds(int width, int height, RectF pageSliceBounds) {

@@ -32,8 +32,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.HandlerThread;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SizeF;
 import android.widget.RelativeLayout;
 
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
@@ -59,13 +62,17 @@ import com.github.barteksc.pdfviewer.source.InputStreamSource;
 import com.github.barteksc.pdfviewer.source.UriSource;
 import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
+import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.MathUtils;
+import com.github.barteksc.pdfviewer.util.Note;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
+import com.github.barteksc.pdfviewer.util.TextLine;
+import com.github.barteksc.pdfviewer.util.TextNote;
 import com.github.barteksc.pdfviewer.util.Util;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
-import com.shockwave.pdfium.util.Size;
-import com.shockwave.pdfium.util.SizeF;
+import io.legere.pdfiumandroid.PdfDocument;
+import io.legere.pdfiumandroid.PdfiumCore;
+import io.legere.pdfiumandroid.util.Config;
+import io.legere.pdfiumandroid.util.Size;
 
 import java.io.File;
 import java.io.InputStream;
@@ -114,18 +121,26 @@ public class PDFView extends RelativeLayout {
 
     private ScrollDir scrollDir = ScrollDir.NONE;
 
-    /** Rendered parts go to the cache manager */
+    /**
+     * Rendered parts go to the cache manager
+     */
     CacheManager cacheManager;
 
-    /** Animation manager manage all offset and zoom animation */
+    /**
+     * Animation manager manage all offset and zoom animation
+     */
     private AnimationManager animationManager;
 
-    /** Drag manager manage all touch events */
+    /**
+     * Drag manager manage all touch events
+     */
     private DragPinchManager dragPinchManager;
 
     PdfFile pdfFile;
 
-    /** The index of the current sequence */
+    /**
+     * The index of the current sequence
+     */
     private int currentPage;
 
     /**
@@ -142,44 +157,74 @@ public class PDFView extends RelativeLayout {
      */
     private float currentYOffset = 0;
 
-    /** The zoom level, always >= 1 */
+    /**
+     * The zoom level, always >= 1
+     */
     private float zoom = 1f;
 
-    /** True if the PDFView has been recycled */
+    /**
+     * True if the PDFView has been recycled
+     */
     private boolean recycled = true;
 
-    /** Current state of the view */
+    /**
+     * Current state of the view
+     */
     private State state = State.DEFAULT;
 
-    /** Async task used during the loading phase to decode a PDF document */
+    /**
+     * Async task used during the loading phase to decode a PDF document
+     */
     private DecodingAsyncTask decodingAsyncTask;
 
-    /** The thread {@link #renderingHandler} will run on */
+    /**
+     * The thread {@link #renderingHandler} will run on
+     */
     private HandlerThread renderingHandlerThread;
-    /** Handler always waiting in the background and rendering tasks */
+    /**
+     * Handler always waiting in the background and rendering tasks
+     */
     RenderingHandler renderingHandler;
 
     private PagesLoader pagesLoader;
 
     Callbacks callbacks = new Callbacks();
 
-    /** Paint object for drawing */
+    /**
+     * Paint object for drawing
+     */
     private Paint paint;
 
-    /** Paint object for drawing debug stuff */
+    /**
+     * Paint object for drawing debug stuff
+     */
     private Paint debugPaint;
 
-    /** Policy for fitting pages to screen */
+    /**
+     * Policy for fitting pages to screen
+     */
     private FitPolicy pageFitPolicy = FitPolicy.WIDTH;
 
     private boolean fitEachPage = false;
 
     private int defaultPage = 0;
 
-    /** True if should scroll through pages vertically instead of horizontally */
+    private boolean dualPageMode = false;
+
+    private boolean isLandscapeOrientation = false;
+
+    /**
+     * True if should scroll through pages vertically instead of horizontally
+     */
     private boolean swipeVertical = true;
 
     private boolean enableSwipe = true;
+
+    private boolean enableMovement = true;
+
+    private List<Hotspot> hotspots = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
+    private List<TextNote> textNotes = new ArrayList<>();
 
     private boolean doubletapEnabled = true;
 
@@ -187,7 +232,9 @@ public class PDFView extends RelativeLayout {
 
     private boolean pageSnap = true;
 
-    /** Pdfium core for loading and rendering PDFs */
+    /**
+     * Pdfium core for loading and rendering PDFs
+     */
     private PdfiumCore pdfiumCore;
 
     private ScrollHandle scrollHandle;
@@ -218,30 +265,46 @@ public class PDFView extends RelativeLayout {
      */
     private boolean renderDuringScale = false;
 
-    /** Antialiasing and bitmap filtering */
+    /**
+     * Antialiasing and bitmap filtering
+     */
     private boolean enableAntialiasing = true;
     private PaintFlagsDrawFilter antialiasFilter =
             new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
 
-    /** Spacing between pages, in px */
+    /**
+     * Spacing between pages, in px
+     */
     private int spacingPx = 0;
 
-    /** Add dynamic spacing to fit each page separately on the screen. */
+    /**
+     * Add dynamic spacing to fit each page separately on the screen.
+     */
     private boolean autoSpacing = false;
 
-    /** Fling a single page at a time */
+    /**
+     * Fling a single page at a time
+     */
     private boolean pageFling = true;
 
-    /** Pages numbers used when calling onDrawAllListener */
+    /**
+     * Pages numbers used when calling onDrawAllListener
+     */
     private List<Integer> onDrawPagesNums = new ArrayList<>(10);
 
-    /** Holds info whether view has been added to layout and has width and height */
+    /**
+     * Holds info whether view has been added to layout and has width and height
+     */
     private boolean hasSize = false;
 
-    /** Holds last used Configurator that should be loaded when view has size */
+    /**
+     * Holds last used Configurator that should be loaded when view has size
+     */
     private Configurator waitingDocumentConfigurator;
 
-    /** Construct the initial view */
+    /**
+     * Construct the initial view
+     */
     public PDFView(Context context, AttributeSet set) {
         super(context, set);
 
@@ -260,8 +323,15 @@ public class PDFView extends RelativeLayout {
         debugPaint = new Paint();
         debugPaint.setStyle(Style.STROKE);
 
-        pdfiumCore = new PdfiumCore(context);
+        pdfiumCore = new PdfiumCore(context, this.createPdfiumCoreConfig());
         setWillNotDraw(false);
+    }
+
+    /**
+     * Method to be override to customize pdfiumCore's config for subclass
+     */
+    protected Config createPdfiumCoreConfig() {
+        return new Config();
     }
 
     private void load(DocumentSource docSource, String password) {
@@ -380,6 +450,25 @@ public class PDFView extends RelativeLayout {
         this.enableSwipe = enableSwipe;
     }
 
+    public void setHotspots(List<Hotspot> hotspots) {
+        this.hotspots = hotspots;
+    }
+
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
+
+
+    public void enableMovement(boolean enableMovement) {
+        this.enableMovement = enableMovement;
+    }
+
+
+    public void setTextNotes(List<TextNote> textNotes) {
+        this.textNotes = textNotes;
+    }
+
     public void setNightMode(boolean nightMode) {
         this.nightMode = nightMode;
         if (nightMode) {
@@ -452,7 +541,9 @@ public class PDFView extends RelativeLayout {
         return recycled;
     }
 
-    /** Handle fling animation */
+    /**
+     * Handle fling animation
+     */
     @Override
     public void computeScroll() {
         super.computeScroll();
@@ -493,10 +584,10 @@ public class PDFView extends RelativeLayout {
         float relativeCenterPointInStripXOffset;
         float relativeCenterPointInStripYOffset;
 
-        if (swipeVertical){
+        if (swipeVertical) {
             relativeCenterPointInStripXOffset = centerPointInStripXOffset / pdfFile.getMaxPageWidth();
             relativeCenterPointInStripYOffset = centerPointInStripYOffset / pdfFile.getDocLen(zoom);
-        }else {
+        } else {
             relativeCenterPointInStripXOffset = centerPointInStripXOffset / pdfFile.getDocLen(zoom);
             relativeCenterPointInStripYOffset = centerPointInStripYOffset / pdfFile.getMaxPageHeight();
         }
@@ -506,12 +597,12 @@ public class PDFView extends RelativeLayout {
 
         if (swipeVertical) {
             currentXOffset = -relativeCenterPointInStripXOffset * pdfFile.getMaxPageWidth() + w * 0.5f;
-            currentYOffset = -relativeCenterPointInStripYOffset * pdfFile.getDocLen(zoom) + h * 0.5f ;
-        }else {
+            currentYOffset = -relativeCenterPointInStripYOffset * pdfFile.getDocLen(zoom) + h * 0.5f;
+        } else {
             currentXOffset = -relativeCenterPointInStripXOffset * pdfFile.getDocLen(zoom) + w * 0.5f;
             currentYOffset = -relativeCenterPointInStripYOffset * pdfFile.getMaxPageHeight() + h * 0.5f;
         }
-        moveTo(currentXOffset,currentYOffset);
+        moveTo(currentXOffset, currentYOffset);
         loadPageByOffset();
     }
 
@@ -641,9 +732,274 @@ public class PDFView extends RelativeLayout {
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
+        //Log.d("dragPinchManager", String.format("%b", dragPinchManager.scaling));
+
+        //if(!dragPinchManager.scaling) {
+
+        float defaultWidthHotspot = 60 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+
+        for (Hotspot hotspot : this.hotspots) {
+            Double xPercent = hotspot.getXpos() / 100;
+            Double yPercent = hotspot.getYpos() / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+
+            float width = toCurrentScale(defaultWidthHotspot + x.floatValue());
+            float height = toCurrentScale(defaultWidthHotspot + y.floatValue());
+
+            if ((defaultWidthHotspot + x.floatValue()) > 10 && (defaultWidthHotspot + y.floatValue()) > 10) {
+                Bitmap b = this.getBitmapForHotspotFromVectorDrawable(this.getContext(), defaultWidthHotspot + x.floatValue(), defaultWidthHotspot + y.floatValue(), hotspot);
+                if (b.isRecycled()) {
+                    return;
+                } else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
+
+                    //canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
+                }
+            }
+        }
+
+        for (TextNote textNote : this.textNotes) {
+            Double xPercent = textNote.getXpos() / 100;
+            Double yPercent = textNote.getYpos() / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+
+            Double widthPercent = (textNote.getWidth()) / 100;
+            Double heightPercent = (textNote.getHeight()) / 100;
+
+            Double width = pdfFile.getPageSize(0).getWidth() * widthPercent;
+            Double paddingLeft = width*(2.5/100)*2;
+            Double height = pdfFile.getPageSize(0).getHeight() * heightPercent;
+            Double paddingTop = height*(1.5/100)*2;
+
+
+            /*Double left = pdfFile.getPageSize(0).getWidth() * widthPercent*(2.5/100);
+            Double top = pdfFile.getPageSize(0).getHeight()  * heightPercent*(1.5/100);
+
+            widthPercent = widthPercent + widthPercent*(2.5/100);
+            heightPercent = heightPercent + heightPercent*(1.5/100);
+
+
+            //Double widthPercent = (textNote.getWidth() + 2.5) / 100;
+            //Double heightPercent = (textNote.getHeight() + 1.5) / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent;
+
+
+
+            Double widthDouble = pdfFile.getPageSize(0).getWidth() * widthPercent;
+            //Double left = pdfFile.getPageSize(0).getWidth() * 0.025/2;
+            //widthDouble = widthDouble + left*2;
+            Double heightDouble = pdfFile.getPageSize(0).getHeight() * heightPercent;
+            //Double top = pdfFile.getPageSize(0).getHeight() * 0.015/2;
+            //heightDouble = heightDouble + pdfFile.getPageSize(0).getHeight() * 0.03;
+            float width = toCurrentScale(widthDouble.floatValue() + x.floatValue() + left.floatValue() + left.floatValue());
+            float height = toCurrentScale(heightDouble.floatValue() + y.floatValue() + top.floatValue() + top.floatValue());*/
+
+            Paint paintBackground = new Paint();
+            paintBackground.setColor(parseColor(textNote.getBackgroundColor()));
+            if(!textNote.getBackgroundColor().equals("transparent")) {
+                paintBackground.setAlpha(textNote.getBackgroundAlpha());
+            }
+
+            Paint strokePaint = new Paint();
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setColor(parseColor(textNote.getBorderColor()));
+            if(!textNote.getBorderColor().equals("transparent")) {
+                strokePaint.setAlpha(textNote.getBorderAlpha());
+            }
+            strokePaint.setStrokeWidth(textNote.getBorderSize());
+
+
+            //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
+
+
+            Rect backGroundRect = new Rect(
+                    (int) toCurrentScale(x.floatValue()),
+                    (int) toCurrentScale(y.floatValue()),
+                    (int) toCurrentScale(x.floatValue() + width.floatValue() + paddingLeft.floatValue()) + 2*textNote.getBorderSize(),
+                    (int) toCurrentScale(y.floatValue() + height.floatValue() + paddingTop.floatValue()) + 2*textNote.getBorderSize());
+            canvas.drawRect(backGroundRect, paintBackground);
+
+            Rect borderRect = new Rect(
+                    (int) toCurrentScale(x.floatValue()) + textNote.getBorderSize()/2,
+                    (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize()/2,
+                    (int) toCurrentScale(x.floatValue() + width.floatValue() + paddingLeft.floatValue()) + textNote.getBorderSize() + textNote.getBorderSize()/2 ,
+                    (int) toCurrentScale(y.floatValue() + height.floatValue() + paddingTop.floatValue()) + textNote.getBorderSize() + textNote.getBorderSize()/2);
+            canvas.drawRect(borderRect, strokePaint);
+
+
+            /*
+            //Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width + textNote.getBorderSize() * 2), (int) (height + textNote.getBorderSize() * 2));
+            Rect testBorder = new Rect((int) toCurrentScale(x.floatValue()), (int) toCurrentScale(y.floatValue()), (int) (width), (int) (height));
+            //Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2, (int) height + textNote.getBorderSize() * 2 - textNote.getBorderSize() / 2);
+            Rect testRect = new Rect((int) toCurrentScale(x.floatValue()) + textNote.getBorderSize() / 2, (int) toCurrentScale(y.floatValue()) + textNote.getBorderSize() / 2, (int) width - textNote.getBorderSize() / 2, (int) height - textNote.getBorderSize() / 2);
+            canvas.drawRect(testBorder, strokePaint);
+            canvas.drawRect(testRect, paintBackground);
+*/
+
+            Rect testRect2 = new Rect(backGroundRect.left + (int)toCurrentScale(paddingLeft.floatValue()) + textNote.getBorderSize()/2, backGroundRect.top + (int)toCurrentScale(paddingTop.floatValue()) + textNote.getBorderSize()/2, backGroundRect.right - (int)toCurrentScale(paddingLeft.floatValue()) - textNote.getBorderSize()/2, backGroundRect.bottom - (int)toCurrentScale(paddingTop.floatValue())- textNote.getBorderSize()/2);
+            Bitmap b = getBitMapForTextNote(testRect2.right-testRect2.left, testRect2.bottom-testRect2.top, textNote);
+            Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+            canvas.drawBitmap(b, srcRect, testRect2, null);
+        }
+
+        float defaultWidthNotes = 70 * pdfFile.getPageSize(currentPage).getWidth() / pdfFile.getOriginalPageSize(currentPage).getWidth() * getResources().getDisplayMetrics().density;
+        for (Note note : this.notes) {
+            Double xPercent = note.getXpos() / 100;
+            Double yPercent = note.getYpos() / 100;
+
+            Double x = pdfFile.getPageSize(0).getWidth() * xPercent * zoom - defaultWidthNotes / 2;
+            Double y = pdfFile.getPageSize(0).getHeight() * yPercent * zoom - defaultWidthNotes / 2;
+
+            float width = defaultWidthNotes + x.floatValue();
+            float height = defaultWidthNotes + y.floatValue();
+
+            if (width > 0 && height > 0) {
+                Bitmap b = this.getBitmapForNoteFromVectorDrawable(this.getContext(), defaultWidthNotes, defaultWidthNotes, note);
+                if (b.isRecycled()) {
+                    return;
+                } else {
+                    SizeF size = pdfFile.getPageSize(0);
+                    float localTranslationX = pdfFile.getPageOffset(0, zoom);
+                    float maxHeight = pdfFile.getMaxPageHeight();
+                    float localTranslationY = (maxHeight - size.getHeight()) / 2;
+
+                    //canvas.translate(localTranslationX, localTranslationY);
+
+                    Rect srcRect = new Rect(0, 0, b.getWidth(), b.getHeight());
+                    Rect destRect = new Rect((int) x.floatValue(), (int) y.floatValue(), (int) width, (int) height);
+                    canvas.drawBitmap(b, srcRect, destRect, null);
+                }
+            }
+        }
+
         // Restores the canvas position
         canvas.translate(-currentXOffset, -currentYOffset);
     }
+
+    public int parseColor(String color) {
+        if(color.equals("transparent")) {
+            return Color.TRANSPARENT;
+        }
+        return Color.parseColor(color);
+    }
+
+    public Bitmap getBitmapForHotspotFromVectorDrawable(Context context, float width, float height, Hotspot hotspot) {
+        if(hotspot.getBitmap() == null) {
+            int drawableId = getResources().getIdentifier(String.format("classification_%s", hotspot.getType()), "drawable", context.getPackageName());
+            Drawable drawable = getResources().getDrawable(drawableId);
+            Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            hotspot.setBitmap(bitmap);
+            return bitmap;
+        }
+        return hotspot.getBitmap();
+    }
+
+
+    public Bitmap getBitmapForNoteFromVectorDrawable(Context context, float width, float height, Note note) {
+        if(note.getBitmap() == null) {
+            int drawableId = getResources().getIdentifier(String.format("annotation_%s", note.getColor()), "drawable", context.getPackageName());
+            Drawable drawable = getResources().getDrawable(drawableId);
+            Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            note.setBitmap(bitmap);
+            return bitmap;
+        }
+        return note.getBitmap();
+    }
+
+
+    /*public Bitmap getBitMapForTextNote(float width, float height, TextNote note) {
+        double relation = Math.sqrt(width * height);
+        relation = relation / 250;
+        Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas();
+        canvas.setBitmap(bitmap);
+        int y = 0;
+        for(TextLine line : note.getLines()) {
+            Paint textPaint  = new Paint();
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            textPaint.setColor(parseColor(line.getFontColor()));
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint.setAlpha(line.getFontAlpha());
+            }
+            int lineHeight = (int)(line.getFontSize());
+            textPaint.setTextSize(toCurrentScale(lineHeight));
+            y = y + (int)(lineHeight - lineHeight*0.15);
+            canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint);
+        }
+        return bitmap;
+    }*/
+
+    public Bitmap getBitMapForTextNote(float width, float height, TextNote note) {
+        Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+
+        double relation = Math.sqrt(pdfFile.getPageSize(0).getWidth() * pdfFile.getPageSize(0).getHeight());
+        relation = relation / 1100;
+
+        Canvas canvas = new Canvas();
+        canvas.setBitmap(bitmap);
+        //int y = 0;
+        for(TextLine line : note.getLines()) {
+            /*TextPaint textPaint1  = new TextPaint();
+            textPaint1.setTextAlign(Paint.Align.LEFT);
+            textPaint1.setColor(parseColor(line.getFontColor()));
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint1.setAlpha(line.getFontAlpha());
+            }
+            int lineHeight1 = (int)(line.getFontSize() * relation);
+            textPaint1.setTextSize(toCurrentScale(lineHeight1));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+                textPaint1.setLetterSpacing(line.getLetterSpace());
+
+            }
+            y = y + (int)(lineHeight1 - lineHeight1*0.15);
+            canvas.drawText(line.getText(), 0, toCurrentScale(y) ,textPaint1);*/
+
+
+            TextPaint textPaint  = new TextPaint();
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            textPaint.setColor(parseColor(line.getFontColor()));
+            textPaint.setAntiAlias(true);
+            textPaint.setSubpixelText(true);
+            if(!line.getFontColor().equals("transparent")) {
+                textPaint.setAlpha(line.getFontAlpha());
+            }
+            int lineHeight = (int)(line.getFontSize() * relation);
+            textPaint.setTextSize(toCurrentScale(lineHeight));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && line.getLetterSpace() != 0.0f) {
+                textPaint.setLetterSpacing(line.getLetterSpace());
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                StaticLayout teste = StaticLayout.Builder
+                        .obtain(line.getText(), 0, line.getText().length(), textPaint, (int)width)
+                        .setLineSpacing(0, 0.75f)
+                        .build();
+                canvas.translate(toCurrentScale((int)-0.5*getResources().getDisplayMetrics().density), toCurrentScale(-0.2f*lineHeight));
+                teste.draw(canvas);
+            }
+        }
+        return bitmap;
+    }
+
 
     private void drawWithListener(Canvas canvas, int page, OnDrawListener listener) {
         if (listener != null) {
@@ -667,7 +1023,9 @@ public class PDFView extends RelativeLayout {
         }
     }
 
-    /** Draw a given PagePart on the canvas */
+    /**
+     * Draw a given PagePart on the canvas
+     */
     private void drawPart(Canvas canvas, PagePart part) {
         // Can seem strange, but avoid lot of calls
         RectF pageRelativeBounds = part.getPageRelativeBounds();
@@ -747,15 +1105,22 @@ public class PDFView extends RelativeLayout {
         redraw();
     }
 
-    /** Called when the PDF is loaded */
+    /**
+     * Called when the PDF is loaded
+     */
     void loadComplete(PdfFile pdfFile) {
         state = State.LOADED;
 
         this.pdfFile = pdfFile;
 
+        if (renderingHandlerThread == null) {
+            renderingHandlerThread = new HandlerThread("PDF renderer");
+        }
+
         if (!renderingHandlerThread.isAlive()) {
             renderingHandlerThread.start();
         }
+
         renderingHandler = new RenderingHandler(renderingHandlerThread.getLooper(), this);
         renderingHandler.start();
 
@@ -822,83 +1187,85 @@ public class PDFView extends RelativeLayout {
      * @param moveHandle whether to move scroll handle or not
      */
     public void moveTo(float offsetX, float offsetY, boolean moveHandle) {
-        if (swipeVertical) {
-            // Check X offset
-            float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
-            if (scaledPageWidth < getWidth()) {
-                offsetX = getWidth() / 2 - scaledPageWidth / 2;
+        if(this.enableMovement && pdfFile != null) {
+            if (swipeVertical) {
+                // Check X offset
+                float scaledPageWidth = toCurrentScale(pdfFile.getMaxPageWidth());
+                if (scaledPageWidth < getWidth()) {
+                    offsetX = getWidth() / 2 - scaledPageWidth / 2;
+                } else {
+                    if (offsetX > 0) {
+                        offsetX = 0;
+                    } else if (offsetX + scaledPageWidth < getWidth()) {
+                        offsetX = getWidth() - scaledPageWidth;
+                    }
+                }
+
+                // Check Y offset
+                float contentHeight = pdfFile.getDocLen(zoom);
+                if (contentHeight < getHeight()) { // whole document height visible on screen
+                    offsetY = (getHeight() - contentHeight) / 2;
+                } else {
+                    if (offsetY > 0) { // top visible
+                        offsetY = 0;
+                    } else if (offsetY + contentHeight < getHeight()) { // bottom visible
+                        offsetY = -contentHeight + getHeight();
+                    }
+                }
+
+                if (offsetY < currentYOffset) {
+                    scrollDir = ScrollDir.END;
+                } else if (offsetY > currentYOffset) {
+                    scrollDir = ScrollDir.START;
+                } else {
+                    scrollDir = ScrollDir.NONE;
+                }
             } else {
-                if (offsetX > 0) {
-                    offsetX = 0;
-                } else if (offsetX + scaledPageWidth < getWidth()) {
-                    offsetX = getWidth() - scaledPageWidth;
+                // Check Y offset
+                float scaledPageHeight = toCurrentScale(pdfFile.getMaxPageHeight());
+                if (scaledPageHeight < getHeight()) {
+                    offsetY = getHeight() / 2 - scaledPageHeight / 2;
+                } else {
+                    if (offsetY > 0) {
+                        offsetY = 0;
+                    } else if (offsetY + scaledPageHeight < getHeight()) {
+                        offsetY = getHeight() - scaledPageHeight;
+                    }
+                }
+
+                // Check X offset
+                float contentWidth = pdfFile.getDocLen(zoom);
+                if (contentWidth < getWidth()) { // whole document width visible on screen
+                    offsetX = (getWidth() - contentWidth) / 2;
+                } else {
+                    if (offsetX > 0) { // left visible
+                        offsetX = 0;
+                    } else if (offsetX + contentWidth < getWidth()) { // right visible
+                        offsetX = -contentWidth + getWidth();
+                    }
+                }
+
+                if (offsetX < currentXOffset) {
+                    scrollDir = ScrollDir.END;
+                } else if (offsetX > currentXOffset) {
+                    scrollDir = ScrollDir.START;
+                } else {
+                    scrollDir = ScrollDir.NONE;
                 }
             }
 
-            // Check Y offset
-            float contentHeight = pdfFile.getDocLen(zoom);
-            if (contentHeight < getHeight()) { // whole document height visible on screen
-                offsetY = (getHeight() - contentHeight) / 2;
-            } else {
-                if (offsetY > 0) { // top visible
-                    offsetY = 0;
-                } else if (offsetY + contentHeight < getHeight()) { // bottom visible
-                    offsetY = -contentHeight + getHeight();
-                }
+            currentXOffset = offsetX;
+            currentYOffset = offsetY;
+            float positionOffset = getPositionOffset();
+
+            if (moveHandle && scrollHandle != null && !documentFitsView()) {
+                scrollHandle.setScroll(positionOffset);
             }
 
-            if (offsetY < currentYOffset) {
-                scrollDir = ScrollDir.END;
-            } else if (offsetY > currentYOffset) {
-                scrollDir = ScrollDir.START;
-            } else {
-                scrollDir = ScrollDir.NONE;
-            }
-        } else {
-            // Check Y offset
-            float scaledPageHeight = toCurrentScale(pdfFile.getMaxPageHeight());
-            if (scaledPageHeight < getHeight()) {
-                offsetY = getHeight() / 2 - scaledPageHeight / 2;
-            } else {
-                if (offsetY > 0) {
-                    offsetY = 0;
-                } else if (offsetY + scaledPageHeight < getHeight()) {
-                    offsetY = getHeight() - scaledPageHeight;
-                }
-            }
+            callbacks.callOnPageScroll(getCurrentPage(), positionOffset);
 
-            // Check X offset
-            float contentWidth = pdfFile.getDocLen(zoom);
-            if (contentWidth < getWidth()) { // whole document width visible on screen
-                offsetX = (getWidth() - contentWidth) / 2;
-            } else {
-                if (offsetX > 0) { // left visible
-                    offsetX = 0;
-                } else if (offsetX + contentWidth < getWidth()) { // right visible
-                    offsetX = -contentWidth + getWidth();
-                }
-            }
-
-            if (offsetX < currentXOffset) {
-                scrollDir = ScrollDir.END;
-            } else if (offsetX > currentXOffset) {
-                scrollDir = ScrollDir.START;
-            } else {
-                scrollDir = ScrollDir.NONE;
-            }
+            redraw();
         }
-
-        currentXOffset = offsetX;
-        currentYOffset = offsetY;
-        float positionOffset = getPositionOffset();
-
-        if (moveHandle && scrollHandle != null && !documentFitsView()) {
-            scrollHandle.setScroll(positionOffset);
-        }
-
-        callbacks.callOnPageScroll(getCurrentPage(), positionOffset);
-
-        redraw();
     }
 
     void loadPageByOffset() {
@@ -924,10 +1291,14 @@ public class PDFView extends RelativeLayout {
         }
     }
 
+    public void performPageSnap() {
+        performPageSnap(true);
+    }
+
     /**
      * Animate to the nearest snapping position for the current SnapPolicy
      */
-    public void performPageSnap() {
+    public void performPageSnap(boolean withAnimation) {
         if (!pageSnap || pdfFile == null || pdfFile.getPagesCount() == 0) {
             return;
         }
@@ -939,9 +1310,17 @@ public class PDFView extends RelativeLayout {
 
         float offset = snapOffsetForPage(centerPage, edge);
         if (swipeVertical) {
-            animationManager.startYAnimation(currentYOffset, -offset);
+            if (withAnimation) {
+                animationManager.startYAnimation(currentYOffset, -offset);
+            } else {
+                moveTo(currentXOffset, -offset);
+            }
         } else {
-            animationManager.startXAnimation(currentXOffset, -offset);
+            if (withAnimation) {
+                animationManager.startXAnimation(currentXOffset, -offset);
+            } else {
+                moveTo(-offset, currentYOffset);
+            }
         }
     }
 
@@ -1027,7 +1406,9 @@ public class PDFView extends RelativeLayout {
      * Change the zoom level
      */
     public void zoomTo(float zoom) {
-        this.zoom = zoom;
+        if(this.enableMovement) {
+            this.zoom = zoom;
+        }
     }
 
     /**
@@ -1179,6 +1560,22 @@ public class PDFView extends RelativeLayout {
         return bestQuality;
     }
 
+    public boolean isOnDualPageMode() {
+        return dualPageMode;
+    }
+
+    public boolean isOnLandscapeOrientation() {
+        return isLandscapeOrientation;
+    }
+
+    public void setLandscapeOrientation(boolean landscapeOrientation) {
+        this.isLandscapeOrientation = landscapeOrientation;
+    }
+
+    public void setDualPageMode(boolean dualPageMode) {
+        this.dualPageMode = dualPageMode;
+    }
+
     public boolean isSwipeVertical() {
         return swipeVertical;
     }
@@ -1263,7 +1660,9 @@ public class PDFView extends RelativeLayout {
         return renderDuringScale;
     }
 
-    /** Returns null if document is not loaded */
+    /**
+     * Returns null if document is not loaded
+     */
     public PdfDocument.Meta getDocumentMeta() {
         if (pdfFile == null) {
             return null;
@@ -1271,7 +1670,9 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getMetaData();
     }
 
-    /** Will be empty until document is loaded */
+    /**
+     * Will be empty until document is loaded
+     */
     public List<PdfDocument.Bookmark> getTableOfContents() {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1279,7 +1680,9 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getBookmarks();
     }
 
-    /** Will be empty until document is loaded */
+    /**
+     * Will be empty until document is loaded
+     */
     public List<PdfDocument.Link> getLinks(int page) {
         if (pdfFile == null) {
             return Collections.emptyList();
@@ -1287,32 +1690,44 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPageLinks(page);
     }
 
-    /** Use an asset file as the pdf source */
+    /**
+     * Use an asset file as the pdf source
+     */
     public Configurator fromAsset(String assetName) {
         return new Configurator(new AssetSource(assetName));
     }
 
-    /** Use a file as the pdf source */
+    /**
+     * Use a file as the pdf source
+     */
     public Configurator fromFile(File file) {
         return new Configurator(new FileSource(file));
     }
 
-    /** Use URI as the pdf source, for use with content providers */
+    /**
+     * Use URI as the pdf source, for use with content providers
+     */
     public Configurator fromUri(Uri uri) {
         return new Configurator(new UriSource(uri));
     }
 
-    /** Use bytearray as the pdf source, documents is not saved */
+    /**
+     * Use bytearray as the pdf source, documents is not saved
+     */
     public Configurator fromBytes(byte[] bytes) {
         return new Configurator(new ByteArraySource(bytes));
     }
 
-    /** Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams */
+    /**
+     * Use stream as the pdf source. Stream will be written to bytearray, because native code does not support Java Streams
+     */
     public Configurator fromStream(InputStream stream) {
         return new Configurator(new InputStreamSource(stream));
     }
 
-    /** Use custom source as pdf source */
+    /**
+     * Use custom source as pdf source
+     */
     public Configurator fromSource(DocumentSource docSource) {
         return new Configurator(docSource);
     }
@@ -1353,7 +1768,15 @@ public class PDFView extends RelativeLayout {
 
         private int defaultPage = 0;
 
+        private boolean landscapeOrientation = false;
+
+        private boolean dualPageMode = false;
+
         private boolean swipeHorizontal = false;
+
+        private List<Hotspot> hotspots = new ArrayList<>();
+        private List<Note> notes = new ArrayList<>();
+        private List<TextNote> textNotes = new ArrayList<>();
 
         private boolean annotationRendering = false;
 
@@ -1461,8 +1884,33 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        public Configurator landscapeOrientation(boolean landscapeOrientation) {
+            this.landscapeOrientation = landscapeOrientation;
+            return this;
+        }
+
+        public Configurator dualPageMode(boolean dualPageMode) {
+            this.dualPageMode = dualPageMode;
+            return this;
+        }
+
         public Configurator swipeHorizontal(boolean swipeHorizontal) {
             this.swipeHorizontal = swipeHorizontal;
+            return this;
+        }
+
+        public Configurator withHotspots(List<Hotspot> hotspots) {
+            this.hotspots = hotspots;
+            return this;
+        }
+
+        public Configurator withNotes(List<Note> notes) {
+            this.notes = notes;
+            return this;
+        }
+
+        public Configurator withTextNotes(List<TextNote> textNotes) {
+            this.textNotes = textNotes;
             return this;
         }
 
@@ -1539,9 +1987,14 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setOnPageError(onPageErrorListener);
             PDFView.this.callbacks.setLinkHandler(linkHandler);
             PDFView.this.setSwipeEnabled(enableSwipe);
+            PDFView.this.setHotspots(hotspots);
+            PDFView.this.setNotes(notes);
+            PDFView.this.setTextNotes(textNotes);
             PDFView.this.setNightMode(nightMode);
             PDFView.this.enableDoubletap(enableDoubletap);
             PDFView.this.setDefaultPage(defaultPage);
+            PDFView.this.setLandscapeOrientation(landscapeOrientation);
+            PDFView.this.setDualPageMode(dualPageMode);
             PDFView.this.setSwipeVertical(!swipeHorizontal);
             PDFView.this.enableAnnotationRendering(annotationRendering);
             PDFView.this.setScrollHandle(scrollHandle);

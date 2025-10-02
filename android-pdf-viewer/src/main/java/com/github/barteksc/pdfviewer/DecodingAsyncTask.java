@@ -15,7 +15,6 @@
  */
 package com.github.barteksc.pdfviewer;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 
 import com.github.barteksc.pdfviewer.source.DocumentSource;
@@ -29,12 +28,12 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
 
     private boolean cancelled;
 
-    private final WeakReference<PDFView> pdfViewReference;
+    private WeakReference<PDFView> pdfViewReference;
 
-    private final PdfiumCore pdfiumCore;
-    private final String password;
-    private final DocumentSource docSource;
-    private final int[] userPages;
+    private PdfiumCore pdfiumCore;
+    private String password;
+    private DocumentSource docSource;
+    private int[] userPages;
     private PdfFile pdfFile;
 
     DecodingAsyncTask(DocumentSource docSource, String password, int[] userPages, PDFView pdfView, PdfiumCore pdfiumCore) {
@@ -46,7 +45,6 @@ class DecodingAsyncTask extends AsyncTask<Void, Void, Throwable> {
         this.pdfiumCore = pdfiumCore;
     }
 
-    @SuppressLint("WrongThread")
     @Override
     protected Throwable doInBackground(Void... params) {
         try {

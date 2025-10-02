@@ -1,55 +1,17 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
-
-var libraryVersion = "4.0.3"
 
 android {
-    compileSdk 36
+    compileSdk 34
 
     defaultConfig {
-        namespace "com.github.barteksc.pdfviewer"
-        minSdkVersion 23
-        targetSdkVersion 36
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode 1
-        versionName libraryVersion
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-
-    publishing {
-        singleVariant('release') {
-            withSourcesJar()
-        }
-    }
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId = 'com.github.zacharee'
-            artifactId = 'AndroidPdfViewer'
-            version = libraryVersion
-
-            println(components)
-
-            afterEvaluate {
-                from components.release
-            }
-        }
+        versionName "3.2.0-beta.1"
     }
 }
 
 dependencies {
-    implementation 'androidx.core:core:1.16.0'
-    api 'io.legere:pdfiumandroid:1.0.33'
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
+    implementation 'androidx.core:core:1.12.0'
+    api 'io.legere:pdfiumandroid:1.0.19'
 }

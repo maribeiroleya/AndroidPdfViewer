@@ -39,7 +39,10 @@ import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
+import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
+import com.github.barteksc.pdfviewer.listener.OnActionEnd;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.util.Constants;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.Hotspot;
 import com.github.barteksc.pdfviewer.util.Note;
@@ -52,7 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
-        OnPageErrorListener {
+        OnPageErrorListener, OnActionEnd, OnPageScrollListener {
 
     private static final String TAG = PDFViewActivity.class.getSimpleName();
 
@@ -86,13 +89,14 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.pickFile) {
-            pickFile();
+        switch (item.getItemId()) {
+            case R.id.pickFile:
+                pickFile();
 
-            return true;
+                break;
         }
 
-        return false;
+        return true;
     }
 
     private void initViews() {
@@ -142,7 +146,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     private void displayFromAsset(String assetFileName) {
 
         List<Hotspot> hotspots = new ArrayList<>();
-        hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
+        /*hotspots.add(new Hotspot(22.58064516129032, 35.80246913580247, "play"));
         hotspots.add(new Hotspot(32.25491431451613, 35.95679012345679, "game"));
         hotspots.add(new Hotspot(12.093623991935484, 38.269193672839506, "default"));
         hotspots.add(new Hotspot(0.0, 95.37037037037037, "activity"));
@@ -153,11 +157,12 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         hotspots.add(new Hotspot(17.661290322580645, 18.333333333333332, "document"));
         hotspots.add(new Hotspot(17.661290322580645, 28.333333333333332, "image"));
         hotspots.add(new Hotspot(27.661290322580645, 28.333333333333332, "link"));
-        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));
+        hotspots.add(new Hotspot(27.661290322580645, 38.333333333333332, "presentation"));*/
+
 
         List<Note> notes = new ArrayList<>();
-        notes.add(new Note(50, 50, "red"));
-        notes.add(new Note(10, 10, "blue"));
+        //notes.add(new Note(50, 50, "red"));
+        /*notes.add(new Note(10, 10, "blue"));
         notes.add(new Note(40, 50, "red"));
         notes.add(new Note(0, 10, "blue"));
         notes.add(new Note(30, 50, "red"));
@@ -167,10 +172,20 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         notes.add(new Note(60, 50, "red"));
         notes.add(new Note(80, 10, "blue"));
         notes.add(new Note(45, 50, "red"));
-        notes.add(new Note(10, 10, "blue"));
+        notes.add(new Note(10, 10, "blue"));*/
 
 
         List<TextNote> textNotes = new ArrayList<>();
+        //List<TextLine> lines = new ArrayList<>();
+        //TextLine line = new TextLine(45, "#E25185", 0.43f, "Texto numero 1\nOutra linha");
+        //TextLine line2 = new TextLine(45, "#E25185", 0.43f, "Outra linha");
+        //lines.add(line);
+        //lines.add(line2);
+        //TextNote textNote = new TextNote(50.9, 86.7, 40.4, 5.5, "#FAE32D", 0.28f, "#A551A5",10, 0.67f, lines);
+
+
+
+
         List<TextLine> lines1 = new ArrayList<>();
         TextLine line1 = new TextLine(24, "#000000", 1.0f, "Practice");
         lines1.add(line1);
@@ -183,30 +198,46 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         TextNote textNote2 = new TextNote(35.3, 15.5, 36.4, 12.4, "#FE7F00", 1.0f, "#000000",10, 0.5f, lines2);
         textNotes.add(textNote2);
 
-        boolean isLandscape = false;
+
+        /*boolean isLandscape = false;
         int orientation = this.getResources().getConfiguration().orientation;
         isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE;
-        pdfFileName = assetFileName;
+        pdfFileName = assetFileName;*/
+
+
+        pdfView.setMinZoom(1);
+        pdfView.setMaxZoom(10);
+        pdfView.setMidZoom(5);
+        Constants.Pinch.MINIMUM_ZOOM = 1;
+        Constants.Pinch.MAXIMUM_ZOOM = 10;
 
         pdfView.fromAsset(SAMPLE_FILE)
+                .swipeHorizontal(true)
                 .withHotspots(hotspots)
                 .withNotes(notes)
                 .withTextNotes(textNotes)
                 .defaultPage(pageNumber)
                 .onPageChange(this)
+                .onPageScroll(this)
+                .onActionEnd(this)
                 .enableAnnotationRendering(true)
                 .onLoad(this)
-                .landscapeOrientation(isLandscape)
-                .dualPageMode(false)
                 .scrollHandle(new DefaultScrollHandle(this))
-                .spacing(0) // in dp
-                .enableSwipe(true)
-                .swipeHorizontal(true)
-                .pageFling(true)
-                .fitEachPage(false)
+                .spacing(10) // in dp
                 .onPageError(this)
                 .pageFitPolicy(FitPolicy.BOTH)
+
+                .enableSwipe(false)
+                .landscapeOrientation(true)
+                .dualPageMode(false)
+                .pageFling(true)
+                .fitEachPage(false)
                 .load();
+
+        pdfView.setMaxZoom(10);
+        pdfView.setMinZoom(10);
+
+        pdfView.zoomTo(20);
     }
 
     private void displayFromUri(Uri uri) {
@@ -316,4 +347,22 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public void onPageError(int page, Throwable t) {
         Log.e(TAG, "Cannot load page " + page);
     }
+
+    @Override
+    public void actionEnd() {
+        Log.d("TESTE", "END");
+    }
+
+
+    @Override
+    public void onPageScrolledEnd(float zoom) {
+        Log.d("TESTE", String.format("onPageScrolledEnd: %f", zoom));
+    }
+
+
+    @Override
+    public void onPageScrolled(int page, float positionOffset) {
+        //Log.d("TESTE", "onPageScrolled");
+    }
+
 }

@@ -1146,7 +1146,7 @@ public class PDFView extends RelativeLayout {
         }
     }
 
-    void redraw() {
+    public void redraw() {
         invalidate();
     }
 
